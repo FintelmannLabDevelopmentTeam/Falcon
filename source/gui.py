@@ -35,14 +35,20 @@ class CTScanSeriesPredictionApp:
         self.start_button = Button(root, text="Start Prediction", command=self.start_prediction)
         self.start_button.grid(row=2, column=1)
         Button(root, text="Exit", command=self.exit_application).grid(row=2, column=2)
+        
+        # Create a frame to hold both the "Progress:" label and the progress output
+        progress_frame = ttk.Frame(root)
+        progress_frame.grid(row=3, column=0, columnspan=3, sticky='w', pady=10)
 
-        Label(root, text="Progress:").grid(row=3, column=0, sticky='w')
+        # Create the labels inside the frame and use pack() to place them next to each other
+        Label(progress_frame, text="Progress:").pack(side="left")
         self.progress_var = StringVar()
-        self.progress_label = Label(root, textvariable=self.progress_var, width=50)
-        self.progress_label.grid(row=3, column=1, sticky='w')
+        self.progress_label = Label(progress_frame, textvariable=self.progress_var)
+        self.progress_label.pack(side="left")
+
 
         self.series_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID"), show="headings")
-        self.series_table.grid(row=4, column=0, columnspan=4, sticky='nsew')
+        self.series_table.grid(row=4, column=0, columnspan=4, sticky='nsew', pady=10)
         for col in self.series_table["columns"]:
             self.series_table.heading(col, text=col)
             self.series_table.column(col, width=100)
