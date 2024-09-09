@@ -5,6 +5,8 @@ import csv
 import random
 from datetime import timedelta
 from tkinter import Tk, Label, Entry, Button, filedialog, ttk, StringVar, END
+from interface import body_part_prediction, contrast_prediction
+from prediction_utils.model_utils import load_model, get_device
 
 class CTScanSeriesPredictionApp:
     def __init__(self, root):
@@ -70,16 +72,6 @@ class CTScanSeriesPredictionApp:
     def select_directory(self):
         self.directory = filedialog.askdirectory()
         self.directory_var.set(self.directory)
-
-    def dummy_body_part_prediction(self, series_path):
-        """Simulates a body-part prediction function that returns a body part name."""
-        time.sleep(3)  # Simulate some processing time
-        return "Chest"  # Simulated body-part prediction
-
-    def dummy_contrast_prediction(self, series_info, body_part):
-        """Simulates a contrast prediction function that returns 0 or 1."""
-        time.sleep(3)  # Simulate some processing time
-        return random.choice([0, 1])  # Simulated contrast prediction
 
     def list_series_in_directory(self, directory, min_dcm_files):
         """Lists all series in the directory with at least the minimum number of DICOM files."""
@@ -166,15 +158,20 @@ class CTScanSeriesPredictionApp:
         else:
             self.prediction_in_progress = True
             self.start_button.config(text="Pause Prediction")
+            self.device = get_device()
             start_time = time.time()
             # Body part prediction
             to_do_body_part = self.series_data.copy()
             num_body_part_pred = len(to_do_body_part)
+            body_part_model = 0
+            if len(to_do_body_part)>0:
+                self.progress_var.set(f"Initializing Prediction, might take a few mins...")
+                body_part_model = load_model('body_part', self.device)
             for i, series in enumerate(to_do_body_part):
                 self.root.update()
                 if self.is_paused:
                     return
-                body_part = self.dummy_body_part_prediction(series[5])
+                body_part = body_part_prediction(body_part_model, series, self.directory, device=self.device)
                 elapsed_time = time.time() - start_time
                 seconds = round((elapsed_time / (i + 1)) * (num_body_part_pred - (i + 1)))
                 eta = timedelta(seconds=seconds)
@@ -185,7 +182,7 @@ class CTScanSeriesPredictionApp:
                 self.body_part_predicted_series.append(body_part_series_entry)
                 self.update_tables()
                 self.save_body_part_predictions_to_csv()
-
+            del body_part_model
             # Contrast prediction
             to_do_contrast = self.body_part_predicted_series.copy()
             num_contrast_pred = len(to_do_contrast)
@@ -193,14 +190,14 @@ class CTScanSeriesPredictionApp:
                 self.root.update()
                 if self.is_paused:
                     return
-                contrast_prediction = self.dummy_contrast_prediction(series, series[-1])
+                contrast_pred = contrast_prediction(series, self.directory)
                 elapsed_time = time.time() - start_time
                 seconds = round((elapsed_time / (i + 1)) * (num_contrast_pred - (i + 1)))
                 eta = timedelta(seconds=seconds)
                 self.progress_var.set(f"Step 3/3: Predicting Contrast, {((i + 1) / num_contrast_pred * 100):.2f}%, ETA {str(eta)})")
 
                 self.body_part_predicted_series.remove(series)
-                contrast_series_entry = series + [contrast_prediction]
+                contrast_series_entry = series + [contrast_pred]
                 self.contrast_predicted_series.append(contrast_series_entry)
                 self.update_tables()
                 self.save_contrast_predictions_to_csv()
