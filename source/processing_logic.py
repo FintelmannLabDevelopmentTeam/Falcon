@@ -19,7 +19,7 @@ def process_series(models, series_info, directory=None, device='cpu'):
 
     if part_prediction == 0: contrast_prob = get_contrast_probability(hn_model, img, part='HeadNeck', device=device)
     elif part_prediction == 1: contrast_prob = get_contrast_probability(ch_model, img, part='Chest' ,device=device)
-    if part_prediction == 2: contrast_prob = get_contrast_probability(ab_model, img, part='Abdomen', device=device)
+    elif part_prediction == 2: contrast_prob = get_contrast_probability(ab_model, img, part='Abdomen', device=device)
     else: raise Exception("FATAL ERROR, UNKNOWN PART PREDICTION.")
 
     contrast = (contrast_prob >= 0.5).astype(int) 
