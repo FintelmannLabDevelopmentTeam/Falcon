@@ -5,14 +5,15 @@ import csv
 import random
 from datetime import timedelta
 from tkinter import Tk, Label, Entry, Button, filedialog, ttk, StringVar, END
-from interface import body_part_prediction, contrast_prediction
-from prediction_utils.model_utils import load_model, get_device
+from source.processing_logic import process_series
+from prediction.model_utils import load_models, get_device
+
+DUMMY_MODE = True
 
 class CTScanSeriesPredictionApp:
     def __init__(self, root):
         self.series_data = []
-        self.body_part_predicted_series = []
-        self.contrast_predicted_series = []
+        self.predicted_series = []
         self.is_paused = False
         self.prediction_in_progress = False
         self.index_mapping = {}
@@ -55,19 +56,12 @@ class CTScanSeriesPredictionApp:
             self.series_table.heading(col, text=col)
             self.series_table.column(col, width=100)
 
-        Label(root, text="Body Part Prediction:").grid(row=5, column=0, sticky='w')
-        self.body_part_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "Body Part Prediction"), show="headings")
-        self.body_part_table.grid(row=6, column=0, columnspan=4, sticky='nsew')
-        for col in self.body_part_table["columns"]:
-            self.body_part_table.heading(col, text=col)
-            self.body_part_table.column(col, width=120)
-
-        Label(root, text="Contrast Prediction:").grid(row=7, column=0, sticky='w')
-        self.contrast_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "Body Part Prediction", "Contrast Prediction"), show="headings")
-        self.contrast_table.grid(row=8, column=0, columnspan=4, sticky='nsew')
-        for col in self.contrast_table["columns"]:
-            self.contrast_table.heading(col, text=col)
-            self.contrast_table.column(col, width=150)
+        Label(root, text="Prediction:").grid(row=5, column=0, sticky='w')
+        self.prediction_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "Body Part", "Contrast"), show="headings")
+        self.prediction_table.grid(row=6, column=0, columnspan=4, sticky='nsew')
+        for col in self.prediction_table["columns"]:
+            self.prediction_table.heading(col, text=col)
+            self.prediction_table.column(col, width=120)
 
     def select_directory(self):
         self.directory = filedialog.askdirectory()
@@ -116,25 +110,17 @@ class CTScanSeriesPredictionApp:
             writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID"])
             writer.writerows(self.series_data)
 
-    def save_body_part_predictions_to_csv(self):
-        """Saves the body part prediction results to a CSV file."""
-        csv_file = os.path.join(self.directory, "body_part_predictions.csv")
+    def save_predictions_to_csv(self):
+        """Saves the prediction results to a CSV file."""
+        csv_file = os.path.join(self.directory, "predictions.csv")
         with open(csv_file, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["Index", "Patient", "Study", "Series", "Body Part Prediction"])
-            writer.writerows(self.body_part_predicted_series)
-
-    def save_contrast_predictions_to_csv(self):
-        """Saves the contrast prediction results to a CSV file."""
-        csv_file = os.path.join(self.directory, "contrast_predictions.csv")
-        with open(csv_file, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["Index", "Patient", "Study", "Series", "Body Part Prediction", "Contrast Prediction"])
-            writer.writerows(self.contrast_predicted_series)
+            writer.writerow(["Index", "Patient", "Study", "Series", "Body Part", "Contrast"])
+            writer.writerows(self.predicted_series)
 
     def load_data_from_csv(self, mode):
         """Loads data from a CSV file."""
-        mode_dict = {'series':"list_of_series.csv", 'body_part':"body_part_predictions.csv", 'contrast':"contrast_predictions.csv"}
+        mode_dict = {'series':"list_of_series.csv", 'predictions':"predictions.csv"}
         csv_file = os.path.join(self.directory, mode_dict[mode])
         series = []
         with open(csv_file, mode='r') as file:
@@ -161,54 +147,34 @@ class CTScanSeriesPredictionApp:
             self.device = get_device()
             start_time = time.time()
             # Body part prediction
-            to_do_body_part = self.series_data.copy()
-            num_body_part_pred = len(to_do_body_part)
-            body_part_model = 0
-            if len(to_do_body_part)>0:
-                self.progress_var.set(f"Initializing Prediction, might take a few mins...")
-                body_part_model = load_model('body_part', self.device)
-            for i, series in enumerate(to_do_body_part):
+            to_do= self.series_data.copy()
+            num_pred = len(to_do)
+            models = None
+            if len(to_do)>0 and not DUMMY_MODE:
+                self.progress_var.set(f"Initializing Prediction...")
+                models = load_models(self.device)
+            for i, series in enumerate(to_do):
                 self.root.update()
                 if self.is_paused:
                     return
-                body_part = body_part_prediction(body_part_model, series, self.directory, device=self.device)
+                body_part, contrast = process_series(models, series, self.directory, device=self.device) #add other models
                 elapsed_time = time.time() - start_time
-                seconds = round((elapsed_time / (i + 1)) * (num_body_part_pred - (i + 1)))
+                seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
                 eta = timedelta(seconds=seconds)
-                self.progress_var.set(f"Step 2/3: Predicting Body-Part, {((i + 1) / num_body_part_pred * 100):.2f}%, ETA {str(eta)})")
-
+                self.progress_var.set(f"{((i + 1) / num_pred * 100):.2f}%       ETA: {str(eta)})")
                 self.series_data.remove(series)
-                body_part_series_entry = series[:4] + [body_part]
-                self.body_part_predicted_series.append(body_part_series_entry)
+                series_entry = series[:4] + [body_part] + [contrast]
+                self.predicted_series.append(series_entry)
                 self.update_tables()
-                self.save_body_part_predictions_to_csv()
-            del body_part_model
-            # Contrast prediction
-            to_do_contrast = self.body_part_predicted_series.copy()
-            num_contrast_pred = len(to_do_contrast)
-            for i, series in enumerate(to_do_contrast):
-                self.root.update()
-                if self.is_paused:
-                    return
-                contrast_pred = contrast_prediction(series, self.directory)
-                elapsed_time = time.time() - start_time
-                seconds = round((elapsed_time / (i + 1)) * (num_contrast_pred - (i + 1)))
-                eta = timedelta(seconds=seconds)
-                self.progress_var.set(f"Step 3/3: Predicting Contrast, {((i + 1) / num_contrast_pred * 100):.2f}%, ETA {str(eta)})")
-
-                self.body_part_predicted_series.remove(series)
-                contrast_series_entry = series + [contrast_pred]
-                self.contrast_predicted_series.append(contrast_series_entry)
-                self.update_tables()
-                self.save_contrast_predictions_to_csv()
-                self.save_body_part_predictions_to_csv()
+                self.save_predictions_to_csv()
+            del models
             self.start_button.config(text="Start Prediction")
             self.prediction_in_progress=False
 
     def update_tables(self):
         """Update the tables with the latest data."""
-        for table, data in zip([self.series_table, self.body_part_table, self.contrast_table], 
-                               [self.series_data, self.body_part_predicted_series, self.contrast_predicted_series]):
+        for table, data in zip([self.series_table, self.prediction_table], 
+                               [self.series_data, self.predicted_series]):
             table.delete(*table.get_children())
             for row in data:
                 table.insert("", END, values=row)
@@ -226,32 +192,23 @@ class CTScanSeriesPredictionApp:
             min_dcm_files = 1
 
         list_csv = os.path.join(self.directory, "list_of_series.csv")
-        body_part_csv = os.path.join(self.directory, "body_part_predictions.csv")
-        contrast_csv = os.path.join(self.directory, "contrast_predictions.csv")
+        prediction_csv = os.path.join(self.directory, "predictions.csv")
 
         if os.path.exists(list_csv):
             self.series_data = self.load_data_from_csv(mode='series')
-            if os.path.exists(body_part_csv):
-                self.body_part_predicted_series = self.load_data_from_csv(mode='body_part')
-            if os.path.exists(contrast_csv):
-                self.contrast_predicted_series = self.load_data_from_csv(mode='contrast')
-
+            if os.path.exists(prediction_csv):
+                self.predicted_series = self.load_data_from_csv(mode='predictions')
             # Update to-do list to exclude already body-part predicted series
             predicted_series_identifiers = [
-                (entry[1], entry[2], entry[3]) for entry in self.body_part_predicted_series
+                (entry[1], entry[2], entry[3]) for entry in self.predicted_series
             ]
-            # Append those already contrast-predicted
-            for entry in self.contrast_predicted_series: 
-                predicted_series_identifiers.append((entry[1], entry[2], entry[3]))
-
             self.series_data = [
                 s for s in self.series_data if (s[1], s[2], s[3]) not in predicted_series_identifiers
             ]
-
             self.update_tables()
-            self.start_button.config(text="Continue Prediction")
+            self.start_button.config(text="Start Prediction")
         else:
-            self.progress_var.set(f"Step 1/3: Loading all DICOM series...")
+            self.progress_var.set(f"Loading all DICOM series in directory...")
             self.series_data = self.list_series_in_directory(self.directory, min_dcm_files)
             self.save_series_list_to_csv()
             self.update_tables()
