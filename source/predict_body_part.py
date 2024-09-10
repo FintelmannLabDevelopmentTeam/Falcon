@@ -15,7 +15,7 @@ def get_body_part(model, nrrd_file, device='cpu'):
     data = (data - MIN) / (MAX - MIN)
     data_single_slice = data[BODY_PART_SLICE_IDX, :, :]
     data_3ch = np.broadcast_to(data_single_slice[np.newaxis, ...], (3, data_single_slice.shape[0], data_single_slice.shape[1]))
-
+    data_3ch = np.copy(data_3ch)
     img = torch.from_numpy(data_3ch).float().to(device)
     with torch.no_grad():
         output = model(img.unsqueeze(0)).cpu() #add batch dimension

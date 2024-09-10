@@ -1,13 +1,14 @@
 from PrivateModelArchitectures.classification import ResNet9
 import torch
 
-BODY_PART_MODEL_PATH = ''
+BODY_PART_MODEL_PATH = r"O:\Active projects\Philipp\body_part_model.pth"
 ABDOMEN_MODEL_PATH = ''
 CHEST_MODEL_PATH = ''
 HN_MODEL_PATH = ''
 
 def load_model(mode, device='cpu'):
-    model = ResNet9(in_channels=3, num_classes=1, act_func=torch.nn.Sigmoid, scale_norm=True, norm_layer='group')
+    num = 3 if mode == 'body_part' else 1
+    model = ResNet9(in_channels=3, num_classes=num, act_func=torch.nn.Sigmoid, scale_norm=True, norm_layer='group')
     # Load the original state dict with the '_module' prefix
     if mode == 'body_part': model_path = BODY_PART_MODEL_PATH
     elif mode == 'abdomen': model_path = ABDOMEN_MODEL_PATH

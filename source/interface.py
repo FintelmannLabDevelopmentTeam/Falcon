@@ -10,7 +10,7 @@ LABEL_DICT = {0:'HeadNeck', 1:'Chest', 2:'Abdomen'}
 
 def body_part_prediction(model, series_info, directory=None, device='cpu'):
     nrrd_file = preprocess_series(series_info=series_info, directory=directory, verbose=True)
-    if nrrd_file == 0: return 'ERROR'
+    if nrrd_file is None: return 'ERROR'
     probabilities = get_body_part(model, nrrd_file, device=device)
     prediction = np.argmax(probabilities)
     return LABEL_DICT[prediction]
