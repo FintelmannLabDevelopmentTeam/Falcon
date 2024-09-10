@@ -2,8 +2,8 @@ import os
 import glob
 import numpy as np
 import SimpleITK as sitk
-from dicom_loading import get_sitk_from_dicom
-from image_transformation import respacing, crop_image
+from preprocessing.dicom_loading import get_sitk_from_dicom
+from preprocessing.image_transformation import respacing, crop_image
 
 CROP_SHAPE = [200, 200, 100] #TODO: Adjust! ###############################################
 SCALE_SIZE = [150,150,100]

@@ -5,7 +5,7 @@ import csv
 import random
 from datetime import timedelta
 from tkinter import Tk, Label, Entry, Button, filedialog, ttk, StringVar, END
-from source.processing_logic import process_series
+from processing_logic import process_series
 from prediction.model_utils import load_models, get_device
 
 DUMMY_MODE = True
