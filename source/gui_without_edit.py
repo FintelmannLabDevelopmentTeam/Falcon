@@ -8,14 +8,12 @@ from processing_logic import process_series
 from prediction.model_utils import load_models, get_device
 from user_interface.settings_manager import SettingsManager
 from user_interface.reset_popup import show_reset_popup
-from user_interface.edit_popup import show_edit_popup  # Import the edit popup
 
 DUMMY_MODE = True
 
 class CTScanSeriesPredictionApp:
     def __init__(self, root):
         self.series_data = []
-        self.all_series_data = []
         self.predicted_series = []
         self.is_paused = False
         self.prediction_in_progress = False
@@ -75,15 +73,11 @@ class CTScanSeriesPredictionApp:
         # Create table for DICOM series with a scrollbar
         Label(root, text="Unprocessed Series:").grid(row=6, column=0, sticky='w', padx=(20,0))
 
-        # Edit button, initially disabled
-        self.edit_button = Button(root, text="Edit", state="disabled", command=self.open_edit_popup)
-        self.edit_button.grid(row=6, column=1, sticky='w', padx=(10, 0))
-
         # Scrollbar for series_table
         series_scrollbar = ttk.Scrollbar(root, orient="vertical")
         self.series_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID"), show="headings", yscrollcommand=series_scrollbar.set)
         self.series_table.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=(10,30), padx=(20,0))
-        series_scrollbar.grid(row=7, column=3, sticky='ns', padx=(0, 20), pady=(10,30))
+        series_scrollbar.grid(row=7, column=3, sticky='ns', padx=(0, 20),pady=(10,30))
         series_scrollbar.config(command=self.series_table.yview)
 
         col_widths = [30, 130, 130, 130, 40, 130, 130, 130]
@@ -97,7 +91,7 @@ class CTScanSeriesPredictionApp:
         prediction_scrollbar = ttk.Scrollbar(root, orient="vertical")
         self.prediction_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "Body Part", "BP Confidence", "Contrast", "C Confidence"), show="headings", yscrollcommand=prediction_scrollbar.set)
         self.prediction_table.grid(row=9, column=0, columnspan=3, sticky='nsew', pady=(10,20), padx=(20,0))
-        prediction_scrollbar.grid(row=9, column=3, sticky='ns', padx=(0, 20), pady=(10,20))
+        prediction_scrollbar.grid(row=9, column=3, sticky='ns', padx=(0, 20),pady=(10,20))
         prediction_scrollbar.config(command=self.prediction_table.yview)
 
         col_widths = [30, 130, 130, 130, 100, 100, 100, 100]
@@ -110,6 +104,7 @@ class CTScanSeriesPredictionApp:
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(7, weight=1)  # Unprocessed series table expands vertically
         self.root.grid_rowconfigure(9, weight=1)  # Processed series table expands vertically
+
 
     def update_settings_button_state(self):
         """Enable or disable the settings button depending on whether a prediction is in progress."""
@@ -144,7 +139,7 @@ class CTScanSeriesPredictionApp:
             self.start_button.config(text="Pause Prediction")
             self.device = get_device()
             start_time = time.time()
-            to_do = [s for s in self.series_data if s[-1]]  # Only process selected series
+            to_do = self.series_data.copy()
             num_pred = len(to_do)
             models = None
             if len(to_do) > 0 and not DUMMY_MODE:
@@ -194,7 +189,7 @@ class CTScanSeriesPredictionApp:
             dcm_files = [f for f in files if f.endswith('.dcm')]
             if len(dcm_files) >= min_dcm_files:
                 series_info = self.get_series_info(root, dcm_files, index)
-                series_data.append(series_info + [True])  # All series selected initially
+                series_data.append(series_info)
                 index += 1
         return series_data
 
@@ -218,13 +213,12 @@ class CTScanSeriesPredictionApp:
         return [index, patient_name, study, series, len(dcm_files), root, mrn, series_uid]
 
     def save_series_list_to_csv(self):
-        """Saves the list of series with their selection status to a CSV file."""
+        """Saves the list of series to a CSV file."""
         csv_file = os.path.join(self.directory, "list_of_series.csv")
         with open(csv_file, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Selected"])
-            for row in self.all_series_data:
-                writer.writerow(row)
+            writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID"])
+            writer.writerows(self.series_data)
 
     def save_predictions_to_csv(self):
         """Saves the prediction results to a CSV file."""
@@ -235,7 +229,7 @@ class CTScanSeriesPredictionApp:
             writer.writerows(self.predicted_series)
 
     def load_data_from_csv(self, mode):
-        """Loads data from a CSV file, including selection status."""
+        """Loads data from a CSV file."""
         mode_dict = {'series': "list_of_series.csv", 'predictions': "predictions.csv"}
         csv_file = os.path.join(self.directory, mode_dict[mode])
         series = []
@@ -243,10 +237,7 @@ class CTScanSeriesPredictionApp:
             reader = csv.reader(file)
             next(reader)  # Skip header
             for row in reader:
-                if mode == 'series':
-                    series.append(row[:-1] + [row[-1] == "True"])  # Convert 'selected' to boolean
-                else:
-                    series.append(row)
+                series.append(row)
         return series
 
     def update_tables(self):
@@ -255,10 +246,9 @@ class CTScanSeriesPredictionApp:
         for item in self.series_table.get_children():
             self.series_table.delete(item)
 
-        # Insert new rows for the series_data (only selected series)
+        # Insert new rows for the series_data
         for row in self.series_data:
-            if row[-1]:  # Only show selected series
-                self.series_table.insert("", END, values=row[:-1])
+            self.series_table.insert("", END, values=row)
 
         # Clear the prediction_table
         for item in self.prediction_table.get_children():
@@ -267,6 +257,7 @@ class CTScanSeriesPredictionApp:
         # Insert new rows for the predicted_series
         for row in self.predicted_series:
             self.prediction_table.insert("", 0, values=row)
+
 
     def list_series(self):
         """List series in the selected directory."""
@@ -279,29 +270,27 @@ class CTScanSeriesPredictionApp:
             min_dcm_files = 1
 
         list_csv = os.path.join(self.directory, "list_of_series.csv")
-        prediction_csv = os.path.join(os.path.join(self.directory, "predictions.csv"))
+        prediction_csv = os.path.join(self.directory, "predictions.csv")
 
         if os.path.exists(list_csv):
             self.progress_var.set(f"Loaded state of previous prediction.")
             self.series_data = self.load_data_from_csv(mode='series')
-            self.all_series_data = self.series_data.copy()
             self.start_button.config(text="Start Prediction")
             if os.path.exists(prediction_csv):
                 self.predicted_series = self.load_data_from_csv(mode='predictions')
                 self.is_paused = True
                 self.start_button.config(text="Continue Prediction")
                 self.update_settings_button_state()
-                predicted_series_identifiers = [
-                    (entry[1], entry[2], entry[3]) for entry in self.predicted_series
-                ]
-                self.series_data = [
-                    s for s in self.series_data if (s[1], s[2], s[3]) not in predicted_series_identifiers
-                ]
+            predicted_series_identifiers = [
+                (entry[1], entry[2], entry[3]) for entry in self.predicted_series
+            ]
+            self.series_data = [
+                s for s in self.series_data if (s[1], s[2], s[3]) not in predicted_series_identifiers
+            ]
             self.update_tables()
         else:
             self.progress_var.set(f"Loading all DICOM series in directory...")
             self.series_data = self.list_series_in_directory(self.directory, min_dcm_files)
-            self.all_series_data = self.series_data.copy()
             if len(self.series_data) == 0:
                 self.progress_var.set(f"No series found in directory. Please adjust parameters or change directory.")
                 return
@@ -309,7 +298,6 @@ class CTScanSeriesPredictionApp:
             self.update_tables()
             self.progress_var.set(f"DICOM series loaded. Ready for prediction.")
         self.reset_button.config(state="normal")
-        self.edit_button.config(state="normal")  # Enable Edit button
 
     def reset_prediction(self):
         """Shows a confirmation popup before resetting progress."""
@@ -323,7 +311,7 @@ class CTScanSeriesPredictionApp:
                     if os.path.exists(prediction_csv):
                         os.remove(prediction_csv)
 
-                    preprocessed_dir = os.path.join(os.path.join(self.directory, "preprocessed"))
+                    preprocessed_dir = os.path.join(self.directory, "preprocessed")
                     if os.path.exists(preprocessed_dir):
                         for root, dirs, files in os.walk(preprocessed_dir):
                             for file in files:
@@ -331,14 +319,12 @@ class CTScanSeriesPredictionApp:
                         os.rmdir(preprocessed_dir)
 
                     self.series_data = []
-                    self.all_series_data = []
                     self.predicted_series = []
                     self.update_tables()
                     self.is_paused = False
                     self.prediction_in_progress = False
                     self.update_settings_button_state()
                     self.reset_button.config(state="disabled")
-                    self.edit_button.config(state="disabled")
                     self.start_button.config(text="Start Prediction")
 
                     self.progress_var.set(f"Prediction progress reset. List Series to restart.")
@@ -348,26 +334,6 @@ class CTScanSeriesPredictionApp:
             prev_txt = self.progress_var.get()
             self.progress_var.set("Please answer the pop-up window.")
             show_reset_popup(self.root, perform_reset, prev_txt=prev_txt)
-
-    def open_edit_popup(self):
-        """Opens the pop-up for editing series selection."""
-        if self.all_series_data:
-            show_edit_popup(self.root, self.all_series_data, self.save_series_selection)
-
-    def save_series_selection(self, updated_all_series_data):
-        """Updates the series list with the user-selected series."""
-        self.all_series_data = updated_all_series_data  # Update with user selection
-        self.save_series_list_to_csv()  # Save updated selection to CSV
-        self.update_series_list()
-        self.update_tables()  # Refresh the table with the new selection
-    
-    def update_series_list(self):
-        predicted_series_identifiers = [
-            (entry[1], entry[2], entry[3]) for entry in self.predicted_series
-        ]
-        self.series_data = [
-            s for s in self.all_series_data if s[-1] and (s[1], s[2], s[3]) not in predicted_series_identifiers
-        ]
 
 if __name__ == "__main__":
     root = Tk()
