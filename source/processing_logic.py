@@ -8,8 +8,8 @@ from prediction.get_probabilities import get_body_part_probabilities, get_contra
 
 LABEL_DICT = {0:'HeadNeck', 1:'Chest', 2:'Abdomen'}
 
-def process_series(models, series_info, directory=None, device='cpu'):
-    img = preprocess_series(series_info=series_info, directory=directory, verbose=True)
+def process_series(models, series_info, directory=None, device='cpu', save_nrrds=False):
+    img = preprocess_series(series_info=series_info, directory=directory, verbose=True, save_nrrds=save_nrrds)
     if img is None: return 'ERROR', 'ERROR'
     if models is None: return 'DUMMY', 0
     part_model, hn_model, ch_model, ab_model = models
