@@ -1,10 +1,17 @@
 from PrivateModelArchitectures.classification import ResNet9
 import torch
+import os
 
-BODY_PART_MODEL_PATH = r"O:\Active projects\Philipp\body_part_model.pth"
-ABDOMEN_MODEL_PATH = r"O:\Active projects\Philipp\abdomen_model.pth"
-CHEST_MODEL_PATH = r"O:\Active projects\Philipp\chest_model.pth"
-HN_MODEL_PATH = r"O:\Active projects\Philipp\headneck_model.pth"
+# Get the path to source
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+# Define relative model paths
+BODY_PART_MODEL_PATH = os.path.join(BASE_DIR, "models", "body_part_model.pth")
+ABDOMEN_MODEL_PATH = os.path.join(BASE_DIR, "models", "abdomen_model.pth")
+CHEST_MODEL_PATH = os.path.join(BASE_DIR, "models", "chest_model.pth")
+HN_MODEL_PATH = os.path.join(BASE_DIR, "models", "headneck_model.pth")
+
 
 def load_models(device='cpu'):
     part_model = ResNet9(in_channels=3, num_classes=3, act_func=torch.nn.Sigmoid, scale_norm=True, norm_layer='group')

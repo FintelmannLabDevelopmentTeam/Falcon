@@ -23,7 +23,8 @@ def process_series(models, series_info, directory=None, device='cpu', save_nrrds
     elif part_prediction == 2: contrast_prob = get_contrast_probability(ab_model, img, part='Abdomen', device=device)
     else: raise Exception("FATAL ERROR, UNKNOWN PART PREDICTION.")
 
-    contrast = (contrast_prob >= 0.5).astype(int) 
+    contrast = (contrast_prob >= 0.5).astype(int)
+    if contrast == 0: contrast_prob = 1-contrast_prob
     c_conf = str(round(contrast_prob*100,2))+"%"
     return LABEL_DICT[part_prediction], part_conf, contrast, c_conf
 

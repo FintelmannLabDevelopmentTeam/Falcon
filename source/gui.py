@@ -8,9 +8,9 @@ from processing_logic import process_series
 from prediction.model_utils import load_models, get_device
 from user_interface.settings_manager import SettingsManager
 from user_interface.reset_popup import show_reset_popup
-from user_interface.edit_popup import show_edit_popup  # Import the edit popup
+from user_interface.edit_popup import show_edit_popup
 
-DUMMY_MODE = True
+DUMMY_MODE = False
 
 class CTScanSeriesPredictionApp:
     def __init__(self, root):
