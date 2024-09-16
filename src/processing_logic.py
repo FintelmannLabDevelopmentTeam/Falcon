@@ -12,6 +12,8 @@ from src.prediction.prediction_utils import load_models, save_predictions_to_csv
 LABEL_DICT = {0:'HeadNeck', 1:'Chest', 2:'Abdomen'}
 
 def process_loop(app):
+    verbose = app.settings.get("verbose",False)
+    if verbose: print("Starting the processing of series...")
     start_time = time.time()
     to_do = [s for s in app.series_data if s[-1]]  # Only process selected series
     num_pred = len(to_do)
@@ -26,8 +28,8 @@ def process_loop(app):
             del models
             gc.collect
             return
-        body_part, bp_conf, contrast, c_conf = process(models, series, app.directory,
-                                                device=app.device, save_nrrds=app.settings.get("store_nrrd_files", False))
+        body_part, bp_conf, contrast, c_conf = process(models, series, app.directory, device=app.device, 
+                                                       save_nrrds=app.settings.get("store_nrrd_files", False), verbose=verbose)
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
         eta = timedelta(seconds=seconds)
@@ -43,16 +45,21 @@ def process_loop(app):
     app.settings_button.config(state="normal")
     app.reset_button.config(state="normal")
 
-def process(models, series_info, directory=None, device='cpu', save_nrrds=False):
-    img = preprocess_series(series_info=series_info, directory=directory, verbose=True, save_nrrds=save_nrrds)
+def process(models, series_info, directory=None, device='cpu', save_nrrds=False, verbose=False):
+    if verbose: print(f"\nProcessing series {series_info[0]}:")
+    img = preprocess_series(series_info=series_info, directory=directory, verbose=verbose, save_nrrds=save_nrrds)
     if img is None: return 'ERROR', 'ERROR', 'ERROR', 'ERROR'
     if models is None: return 'DUMMY', '100%', 'DUMMY', '100%'
     part_model, hn_model, ch_model, ab_model = models
     
+    if verbose: print("Predicting the body-part for this series:")
     part_probabilities = get_body_part_probabilities(part_model, img, device=device)
+    if verbose: print(f"Got the following probabilities for the body-parts: {part_probabilities}")
     part_prediction = np.argmax(part_probabilities)
     part_conf = str(round(part_probabilities[part_prediction]*100,2))+"%"
+    if verbose: print(f"Body-Part Prediction: {LABEL_DICT[part_prediction]} with confidence {part_conf}")
 
+    if verbose: print(f"Initiating contrast prediction with the {LABEL_DICT[part_prediction]}-Model...")
     if part_prediction == 0: contrast_prob = get_contrast_probability(hn_model, img, part='HeadNeck', device=device)
     elif part_prediction == 1: contrast_prob = get_contrast_probability(ch_model, img, part='Chest' ,device=device)
     elif part_prediction == 2: contrast_prob = get_contrast_probability(ab_model, img, part='Abdomen', device=device)
@@ -61,6 +68,7 @@ def process(models, series_info, directory=None, device='cpu', save_nrrds=False)
     contrast = (contrast_prob >= 0.5).astype(int)
     if contrast == 0: contrast_prob = 1-contrast_prob
     c_conf = str(round(contrast_prob*100,2))+"%"
+    if verbose: print(f"Contrast Prediction: {contrast} with confidence {c_conf}")
     return LABEL_DICT[part_prediction], part_conf, contrast, c_conf
 
 

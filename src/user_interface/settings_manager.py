@@ -9,7 +9,7 @@ class SettingsManager:
         """Initializes the SettingsManager and loads settings from file."""
         self.settings = {
             "store_nrrd_files": False,       # Default setting
-            "dummy_setting_1": False,        # Dummy checkbox setting
+            "verbose": False,        # Dummy checkbox setting
             "dummy_setting_2": False,        # Dummy checkbox setting
             "dummy_text_field_1": "",        # Dummy text field setting
             "dummy_text_field_2": "",         # Another dummy text field setting
@@ -55,10 +55,10 @@ class SettingsManager:
         store_nrrd_checkbox.grid(row=0, column=1, sticky="w")
 
         # Dummy checkbox settings
-        dummy_setting_1_var = BooleanVar(value=self.settings.get("dummy_setting_1", False))
-        Label(frame, text="Dummy Setting 1:").grid(row=1, column=0, sticky="w", pady=5)
-        dummy_setting_1_checkbox = Checkbutton(frame, variable=dummy_setting_1_var)
-        dummy_setting_1_checkbox.grid(row=1, column=1, sticky="w")
+        verbose_var = BooleanVar(value=self.settings.get("verbose", False))
+        Label(frame, text="Print detailed processing steps:").grid(row=1, column=0, sticky="w", pady=5)
+        verbose_checkbox = Checkbutton(frame, variable=verbose_var)
+        verbose_checkbox.grid(row=1, column=1, sticky="w")
 
         dummy_setting_2_var = BooleanVar(value=self.settings.get("dummy_setting_2", False))
         Label(frame, text="Dummy Setting 2:").grid(row=2, column=0, sticky="w", pady=5)
@@ -79,7 +79,7 @@ class SettingsManager:
         def save_and_close():
             """Save the settings and close the window."""
             self.settings["store_nrrd_files"] = store_nrrd_var.get()
-            self.settings["dummy_setting_1"] = dummy_setting_1_var.get()
+            self.settings["verbose"] = verbose_var.get()
             self.settings["dummy_setting_2"] = dummy_setting_2_var.get()
             self.settings["dummy_text_field_1"] = dummy_text_field_1_var.get()
             self.settings["dummy_text_field_2"] = dummy_text_field_2_var.get()
