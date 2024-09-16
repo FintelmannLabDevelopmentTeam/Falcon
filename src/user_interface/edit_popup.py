@@ -72,3 +72,4 @@ def show_edit_popup(root, all_series_data, on_save):
 
     popup.grab_set()
     popup.wait_window()
+

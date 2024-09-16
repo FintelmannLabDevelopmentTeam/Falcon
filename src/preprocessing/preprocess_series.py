@@ -2,10 +2,10 @@ import os
 import glob
 import numpy as np
 import SimpleITK as sitk
-from preprocessing.dicom_loading import get_sitk_from_dicom
-from preprocessing.image_transformation import respacing, crop_image
+from src.preprocessing.dicom_loading import get_sitk_from_dicom
+from src.preprocessing.image_transformation import respacing, crop_image
 
-CROP_SHAPE = [200, 200, 100] #TODO: Adjust! ###############################################
+CROP_SHAPE = [200, 200, 100]
 SCALE_SIZE = [150,150,100]
 
 def preprocess_series(series_info, directory=None, verbose=False, save_nrrds=False):

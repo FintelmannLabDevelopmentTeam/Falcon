@@ -1,16 +1,17 @@
 from PrivateModelArchitectures.classification import ResNet9
 import torch
 import os
+import csv
 
 # Get the path to source
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Define relative model paths
-BODY_PART_MODEL_PATH = os.path.join(BASE_DIR, "models", "body_part_model.pth")
-ABDOMEN_MODEL_PATH = os.path.join(BASE_DIR, "models", "abdomen_model.pth")
-CHEST_MODEL_PATH = os.path.join(BASE_DIR, "models", "chest_model.pth")
-HN_MODEL_PATH = os.path.join(BASE_DIR, "models", "headneck_model.pth")
+BODY_PART_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "body_part_model.pth")
+ABDOMEN_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "abdomen_model.pth")
+CHEST_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "chest_model.pth")
+HN_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "headneck_model.pth")
 
 
 def load_models(device='cpu'):
@@ -56,3 +57,11 @@ def remove_module_prefix(state_dict):
 
 def get_device():
     return 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+def save_predictions_to_csv(predicted_series, directory):
+    """Saves the prediction results to a CSV file."""
+    csv_file = os.path.join(directory, "predictions.csv")
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Index", "Patient", "Study", "Series", "Body Part", "Contrast"])
+        writer.writerows(predicted_series)
