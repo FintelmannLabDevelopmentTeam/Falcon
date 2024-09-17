@@ -54,14 +54,18 @@ def build_gui(app):
     app.edit_button = Button(root, text="Edit", state="disabled", command=app.open_edit_popup)
     app.edit_button.grid(row=6, column=1, sticky='w', padx=(10, 0))
 
+    # Provide Labels button, initially disabled
+    app.provide_button = Button(root, text="Provide Body-Part Labels", state="disabled", command=app.open_provide_popup)
+    app.provide_button.grid(row=6, column=2, sticky='w', padx=(10, 0))
+
     # Scrollbar for series_table
     series_scrollbar = ttk.Scrollbar(root, orient="vertical")
-    app.series_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID"), show="headings", yscrollcommand=series_scrollbar.set)
+    app.series_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Body Part Label"), show="headings", yscrollcommand=series_scrollbar.set)
     app.series_table.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=(10,30), padx=(20,0))
     series_scrollbar.grid(row=7, column=3, sticky='ns', padx=(0, 20), pady=(10,30))
     series_scrollbar.config(command=app.series_table.yview)
 
-    col_widths = [30, 130, 130, 130, 40, 130, 130, 130]
+    col_widths = [30, 130, 130, 130, 40, 130, 130, 130, 100]
     for idx, col in enumerate(app.series_table["columns"]):
         app.series_table.heading(col, text=col)
         app.series_table.column(col, width=col_widths[idx])

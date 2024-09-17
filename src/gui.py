@@ -5,6 +5,7 @@ from src.prediction.prediction_utils import get_device
 from src.user_interface.settings_manager import SettingsManager
 from src.user_interface.reset_popup import show_reset_popup
 from src.user_interface.edit_popup import show_edit_popup
+from src.user_interface.provide_popup import show_provide_popup
 from src.user_interface.build_gui import build_gui
 from src.preprocessing.series_manager import load_and_display_series, save_series_list_to_csv
 
@@ -45,6 +46,7 @@ class CTScanSeriesPredictionApp:
             self.start_prediction()
         else:
             self.prediction_in_progress = True
+            self.provide_button.config(state='disabled')
             self.settings_button.config(state="disabled")
             self.reset_button.config(state="disabled")
             self.start_button.config(text="Pause Prediction")
@@ -116,6 +118,7 @@ class CTScanSeriesPredictionApp:
                     self.settings_button.config(state="normal")
                     self.reset_button.config(state="disabled")
                     self.edit_button.config(state="disabled")
+                    self.provide_button.config(state="disabled")
                     self.start_button.config(text="Start Prediction")
 
                     self.progress_var.set(f"Prediction progress reset. List Series to restart.")
@@ -126,14 +129,21 @@ class CTScanSeriesPredictionApp:
             self.progress_var.set("Please answer the pop-up window.")
             show_reset_popup(self.root, reset_prediction, prev_txt=prev_txt)
 
+    def update_series_lists(self):
+        save_series_list_to_csv(self.all_series_data, self.directory)  # Save updated selection to CSV
+        predicted_series_identifiers = [(entry[1], entry[2], entry[3]) for entry in self.predicted_series]
+        self.series_data = [s for s in self.all_series_data if s[-1] and (s[1], s[2], s[3]) not in predicted_series_identifiers]
+        
+
     def open_edit_popup(self): #Called by Edit Button
         """Opens the pop-up for editing series selection."""
         if self.all_series_data:
-            def save_series_selection(updated_all_series_data):
-                """Updates the series list with the user-selected series."""
-                self.all_series_data = updated_all_series_data  # Update with user selection
-                save_series_list_to_csv(self.all_series_data, self.directory)  # Save updated selection to CSV
-                predicted_series_identifiers = [(entry[1], entry[2], entry[3]) for entry in self.predicted_series]
-                self.series_data = [s for s in self.all_series_data if s[-1] and (s[1], s[2], s[3]) not in predicted_series_identifiers]
-                self.update_tables()  # Refresh the table with the new selection
-            show_edit_popup(self.root, self.all_series_data, save_series_selection)
+            show_edit_popup(self.root, self.all_series_data)
+            self.update_series_lists()
+            self.update_tables()
+
+    def open_provide_popup(self):
+        show_provide_popup(self.root, self.all_series_data)
+        self.update_series_lists()
+        self.update_tables()
+    

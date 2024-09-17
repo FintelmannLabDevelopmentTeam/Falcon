@@ -1,6 +1,6 @@
 from tkinter import Toplevel, BooleanVar, Button, Label, Frame, Checkbutton, Scrollbar, VERTICAL, Canvas, BOTH, LEFT, RIGHT, Y
 
-def show_edit_popup(root, all_series_data, on_save):
+def show_edit_popup(root, all_series_data):
     """Displays the Edit Series pop-up window for selecting series to process."""
     popup = Toplevel(root)
     popup.title("Edit Series to process")
@@ -63,11 +63,8 @@ def show_edit_popup(root, all_series_data, on_save):
 
     def save_and_close(checkbox_vars):
         """Saves the selected series and closes the pop-up."""
-        updated_series_data = []
         for i, var in enumerate(checkbox_vars):
             all_series_data[i][-1] = var.get()  # Update the 'selected' status
-            updated_series_data.append(all_series_data[i])
-        on_save(updated_series_data)
         popup.destroy()
 
     popup.grab_set()

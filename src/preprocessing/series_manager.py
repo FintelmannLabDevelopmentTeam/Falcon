@@ -2,6 +2,8 @@ import os
 import csv
 import pydicom
 
+#series: [index, patient_name, study, series, len(dcm_files), root_dir, mrn, series_uid, bopy part label, selected]
+
 def load_and_display_series(app):
     """List series in the selected directory."""
     app.directory = app.directory_var.get()
@@ -20,7 +22,9 @@ def load_and_display_series(app):
         app.series_data = load_data_from_csv(app.directory, mode='series')
         app.all_series_data = app.series_data.copy()
         app.start_button.config(text="Start Prediction")
+        app.provide_button.config(state='normal')
         if os.path.exists(prediction_csv):
+            app.provide_button.config(state='disabled')
             app.predicted_series = load_data_from_csv(app.directory ,mode='predictions')
             app.is_paused = True
             app.start_button.config(text="Continue Prediction")
@@ -42,6 +46,7 @@ def load_and_display_series(app):
         save_series_list_to_csv(app.all_series_data, app.directory)
         app.update_tables()
         app.progress_var.set(f"DICOM series loaded. Ready for prediction.")
+        app.provide_button.config(state='normal')
     app.reset_button.config(state="normal")
     app.edit_button.config(state="normal")  # Enable Edit button
 
@@ -68,7 +73,7 @@ def list_series_in_directory(directory, min_dcm_files):
         dcm_files = [f for f in files if f.endswith('.dcm')]
         if len(dcm_files) >= min_dcm_files:
             series_info = get_series_info(root_dir, dcm_files, index)
-            series_data.append(series_info + [True])  # All series selected initially
+            series_data.append(series_info + [""] + [True])  # Body-par label and Selected
             index += 1
     return series_data
 
@@ -96,7 +101,7 @@ def save_series_list_to_csv(series_data, directory):
     csv_file = os.path.join(directory, "list_of_series.csv")
     with open(csv_file, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Selected"])
+        writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Body Part Label","Selected"])
         for row in series_data:
             writer.writerow(row)
 

@@ -11,7 +11,7 @@ SCALE_SIZE = [150,150,100]
 def preprocess_series(series_info, directory=None, verbose=False, save_nrrds=False):
     pre_dir = os.path.join(directory, "preprocessed")
     file_dir = os.path.join(pre_dir, str(series_info[0])+".nrrd")
-    if not os.path.exists(pre_dir): os.makedirs(pre_dir)
+    #if not os.path.exists(pre_dir): os.makedirs(pre_dir)
 
     try:
         if os.path.exists(file_dir):
