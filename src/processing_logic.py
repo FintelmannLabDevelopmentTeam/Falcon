@@ -3,6 +3,7 @@ import numpy as np
 import time
 import gc
 import os
+import pandas as pd
 from datetime import timedelta
 from src.preprocessing.preprocess_series import preprocess_series
 from src.prediction.get_probabilities import get_body_part_probabilities, get_contrast_probability
@@ -18,33 +19,37 @@ def process_loop(app):
     store_preprocessed = app.settings.get("store_nrrd_files", False)
     if verbose: print("Starting the processing of series...")
     start_time = time.time()
-    to_do = [s for s in app.series_data if s[-1]]  # Only process selected series
+    #to_do = [s for s in app.series_data if s[-1]]  # Only process selected series
+    to_do = app.series_data[app.series_data["Selected"]==True].copy()
     num_pred = len(to_do)
     models = None
     if len(to_do):
         app.progress_var.set(f"Initializing Prediction...")
         models = load_models(app.device)
         if store_preprocessed:
-            preprocessed_dir = os.path.joint(app.directory, "preprocessed")
+            preprocessed_dir = os.path.join(app.directory, "preprocessed")
             if not os.path.exists(preprocessed_dir): os.makedirs(preprocessed_dir)
-    for i, series in enumerate(to_do):
+        if len(app.predicted_series) == 0: app.predicted_series = pd.DataFrame(columns=app.series_data.columns)
+
+    for i, (index,series) in enumerate(to_do.iterrows()):
         gc.collect()
         app.root.update()
         if app.is_paused:
             del models
-            gc.collect
+            gc.collect()
             return
-        body_part, bp_conf, contrast, c_conf = process(models, series, app.directory, device=app.device, 
-                                                       save_nrrds=store_preprocessed, verbose=verbose)
+        series["Body Part (BP)"], series["BP Confidence"], series["IV Contrast (IVC)"], series["IVC Confidence"] = process(models, 
+                                    series, app.directory, device=app.device, save_nrrds=store_preprocessed, verbose=verbose)
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
         eta = timedelta(seconds=seconds)
         app.progress_var.set(f"{((i + 1) / num_pred * 100):.2f}%       ETA: {str(eta)}")
-        app.series_data.remove(series)
-        series_entry = series[:4] + [body_part] + [bp_conf] + [contrast] + [c_conf]
-        app.predicted_series.append(series_entry)
+        app.series_data = app.series_data[app.series_data["Index"]!=series["Index"]]
+        app.predicted_series = pd.concat([app.predicted_series, pd.DataFrame([series], columns=app.predicted_series.columns)], ignore_index=False)
         app.update_tables()
-        save_predictions_to_csv(app.predicted_series, app.directory)
+        #app.predicted_series.set_index("idx", inplace=True)
+        app.predicted_series.to_csv(os.path.join(app.directory, "predictions.csv"), index=True, index_label='idx')
+        #save_predictions_to_csv(app.predicted_series, app.directory)
     del models
     app.start_button.config(text="Start Prediction")
     app.prediction_in_progress = False
@@ -52,15 +57,15 @@ def process_loop(app):
     app.reset_button.config(state="normal")
 
 def process(models, series_info, directory=None, device='cpu', save_nrrds=False, verbose=False):
-    if verbose: print(f"\nProcessing series {series_info[0]}:")
+    if verbose: print(f"\nProcessing series {series_info['Index']}:")
     img = preprocess_series(series_info=series_info, directory=directory, verbose=verbose, save_nrrds=save_nrrds)
     if img is None: return 'ERROR', 'ERROR', 'ERROR', 'ERROR'
     if models is None: return 'DUMMY', '100%', 'DUMMY', '100%'
     part_model, hn_model, ch_model, ab_model = models
     
-    if series_info[-2] in ["HeadNeck", "Chest", "Abdomen"]:
-        if verbose: print(f"Using provided body-part label {series_info[-2]}.")
-        part_prediction = REV_LABEL_DICT[series_info[-2]]
+    if series_info["Body Part Label"] in ["HeadNeck", "Chest", "Abdomen"]:
+        if verbose: print(f"Using provided body-part label {series_info['Body Part Label']}.")
+        part_prediction = REV_LABEL_DICT[series_info["Body Part Label"]]
         part_conf = "Provided"
     else:
         if verbose: print("Predicting the body-part for this series:")

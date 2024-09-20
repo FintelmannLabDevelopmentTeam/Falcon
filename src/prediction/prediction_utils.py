@@ -63,5 +63,5 @@ def save_predictions_to_csv(predicted_series, directory):
     csv_file = os.path.join(directory, "predictions.csv")
     with open(csv_file, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Index", "Patient", "Study", "Series", "Body Part", "Contrast"])
+        writer.writerow(["Index", "Patient", "Study", "Series", "Body Part", "Body Part Confidence", "Contrast", "Contrast Confidence"])
         writer.writerows(predicted_series)

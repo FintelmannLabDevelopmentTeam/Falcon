@@ -60,29 +60,30 @@ def build_gui(app):
 
     # Scrollbar for series_table
     series_scrollbar = ttk.Scrollbar(root, orient="vertical")
-    app.series_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Body Part Label"), show="headings", yscrollcommand=series_scrollbar.set)
+    columns = [key for key, value in app.settings['series_table_columns'].items() if value]
+    app.series_table = ttk.Treeview(root, columns=columns, show="headings", yscrollcommand=series_scrollbar.set)
     app.series_table.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=(10,30), padx=(20,0))
     series_scrollbar.grid(row=7, column=3, sticky='ns', padx=(0, 20), pady=(10,30))
     series_scrollbar.config(command=app.series_table.yview)
 
-    col_widths = [30, 130, 130, 130, 40, 130, 130, 130, 100]
     for idx, col in enumerate(app.series_table["columns"]):
         app.series_table.heading(col, text=col)
-        app.series_table.column(col, width=col_widths[idx])
+        app.series_table.column(col, width=20 if idx==0 else 100)
 
     Label(root, text="Processed Series:").grid(row=8, column=0, sticky='w', padx=(20,0))
 
     # Scrollbar for prediction_table
     prediction_scrollbar = ttk.Scrollbar(root, orient="vertical")
-    app.prediction_table = ttk.Treeview(root, columns=("Index", "Patient", "Study", "Series", "Body Part", "BP Confidence", "Contrast", "C Confidence"), show="headings", yscrollcommand=prediction_scrollbar.set)
+    columns = [key for key, value in app.settings['predicted_table_columns'].items() if value]
+    app.prediction_table = ttk.Treeview(root, columns=columns, show="headings", yscrollcommand=prediction_scrollbar.set)
     app.prediction_table.grid(row=9, column=0, columnspan=3, sticky='nsew', pady=(10,20), padx=(20,0))
     prediction_scrollbar.grid(row=9, column=3, sticky='ns', padx=(0, 20), pady=(10,20))
     prediction_scrollbar.config(command=app.prediction_table.yview)
 
-    col_widths = [30, 130, 130, 130, 100, 100, 100, 100]
+    #col_widths = [30, 130, 130, 130, 100, 100, 100, 100]
     for idx, col in enumerate(app.prediction_table["columns"]):
         app.prediction_table.heading(col, text=col)
-        app.prediction_table.column(col, width=col_widths[idx])
+        app.prediction_table.column(col, width=20 if idx==0 else 100)
 
     # Configure resizing behavior for rows and columns
     app.root.grid_columnconfigure(1, weight=1)

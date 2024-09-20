@@ -9,11 +9,49 @@ class SettingsManager:
         """Initializes the SettingsManager and loads settings from file."""
         self.settings = {
             "store_nrrd_files": False,       # Default setting
-            "verbose": False,        # Dummy checkbox setting
+            "verbose": False,               # Dummy checkbox setting
             "dummy_setting_2": False,        # Dummy checkbox setting
             "dummy_text_field_1": "",        # Dummy text field setting
             "dummy_text_field_2": "",         # Another dummy text field setting
-            "last_directory": ""
+            "last_directory": "",
+            "series_table_columns": {
+                'Index': True,
+                'Patient ID': True,
+                'Study Instance UID': True,
+                'Series Instance UID': True,
+                'Study Description': False,
+                'Series Description': True,
+                'Patient Folder': False,
+                'Study Folder': False,
+                'Series Folder': False,
+                'Number of Slices': True,
+                'Series Directory': True,
+                "Body Part Label": True,
+                "Body Part (BP)": False,
+                "BP Confidence": False,
+                "IV Contrast (IVC)": False,
+                "IVC Confidence": False,
+                "Selected": False
+            },
+            "predicted_table_columns": {
+                'Index': True,
+                'Patient ID': True,
+                'Study Instance UID': True,
+                'Series Instance UID': True,
+                'Study Description': False,
+                'Series Description': False,
+                'Patient Folder': False,
+                'Study Folder': False,
+                'Series Folder': False,
+                'Number of Slices': False,
+                'Series Directory': False,
+                "Body Part Label": False,
+                "Body Part (BP)": True,
+                "BP Confidence": True,
+                "IV Contrast (IVC)": True,
+                "IVC Confidence": True,
+                "Selected": False
+            }
         }
         self.load_settings()
 

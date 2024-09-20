@@ -1,10 +1,13 @@
 import pydicom
 import numpy as np
 import glob
+import os
 import SimpleITK as sitk
 
 def get_sitk_from_dicom(dicom_dir, verbose=False):
-    dicomFiles = sorted(glob.glob(dicom_dir + '/*.dcm'))
+    #dicomFiles = sorted(glob.glob(dicom_dir + '/*.dcm'))
+    all_files = sorted(glob.glob(os.path.join(dicom_dir, "*")))
+    dicomFiles = [file for file in all_files if is_dicom_file(file)]
     slices, img_spacing, img_direction, img_origin = load_dicom(dicomFiles)
     if 0.0 in img_spacing:
         if verbose: print ('ERROR - Zero spacing found for patient,', img_spacing)
@@ -67,3 +70,9 @@ def getPixelArray(slices):
         image[slice_number] += np.int16(intercept)
     image[image < -1000] = -1000 #Clip at HU value for air
     return np.array(image, dtype=np.int16)
+
+def is_dicom_file(filepath):
+    """Check if a file is a DICOM file by reading basic metadata."""
+    try: pydicom.dcmread(filepath, stop_before_pixels=True)
+    except: return False
+    return True

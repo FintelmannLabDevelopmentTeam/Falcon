@@ -67,24 +67,29 @@ class CTScanSeriesPredictionApp:
             self.settings_manager.save_settings(self.settings)
         self.root.focus_force()
 
+
     def update_tables(self): #Auxiliary Function
         """Update the tables with the latest data."""
         # Clear the series_table
         for item in self.series_table.get_children():
             self.series_table.delete(item)
 
-        # Insert new rows for the series_data (only selected series)
-        for row in self.series_data:
-            if row[-1]:  # Only show selected series
-                self.series_table.insert("", END, values=row[:-1])
+        if len(self.series_data) != 0:
+            series_table_columns = list(self.series_table["columns"])
+            filtered_series_data = self.series_data[self.series_data["Selected"]==True]
+            filtered_series_data = filtered_series_data[series_table_columns]
+            for row in filtered_series_data.itertuples(index=False):
+                self.series_table.insert("", END, values=row)
 
         # Clear the prediction_table
         for item in self.prediction_table.get_children():
             self.prediction_table.delete(item)
-
-        # Insert new rows for the predicted_series
-        for row in self.predicted_series:
-            self.prediction_table.insert("", 0, values=row)
+        
+        if len(self.predicted_series) != 0:
+            predicted_table_columns = list(self.prediction_table["columns"])
+            filtered_prediction_data = self.predicted_series[predicted_table_columns]
+            for row in filtered_prediction_data.itertuples(index=False):
+                self.prediction_table.insert("", END, values=row)
 
     def list_series(self): #Called by List Series Button
         """List and display series in the selected directory."""
