@@ -2,6 +2,8 @@ import os
 import csv
 import pydicom
 import pandas as pd
+import time
+from datetime import timedelta
 
 def load_data_from_csv(directory, mode):
     """Loads data from a CSV file, including selection status."""
@@ -57,15 +59,22 @@ def save_series_list_to_csv(series_data, directory):
         for row in series_data:
             writer.writerow(row)
 
-def create_series_df(directory, min_dcm_files):
+def create_series_df(app, min_dcm_files):
     """Traverse the given directory and collect series information."""
     series_dict = {}  # Dictionary to hold series information
     series_lookup = {}
-    
+    directory = app.directory
+    app.progress_var.set("Initializing Series Listing...")
+    app.progress_label.update()
+    total_files = 0
+    i = 0
+    for _, _, files in os.walk(directory): total_files += len(files)
+    start_time = time.time()
+
     for root, dirs, files in os.walk(directory):
         for file in files:
             filepath = os.path.join(root, file)
-            
+            i += 1
             # Check if the file is a DICOM file
             if is_dicom_file(filepath):
                 dicom_info = get_dicom_info(filepath)
@@ -96,6 +105,14 @@ def create_series_df(directory, min_dcm_files):
                 else:
                     # If the series exists, increment the slice count
                     series_dict[series_uid]["Number of Slices"] += 1
+                
+        #dir processed
+        elapsed_time = time.time() - start_time
+        seconds = round((elapsed_time / (i + 1)) * (total_files - (i + 1)))
+        eta = timedelta(seconds=seconds)
+        app.progress_var.set(f"{((i + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
+        app.progress_label.update()
+
     df = pd.DataFrame.from_dict(series_dict, orient="index")
     filtered_df = df[df["Number of Slices"] >= min_dcm_files]
     filtered_df["Index"] = range(1, len(filtered_df)+1)
@@ -172,7 +189,7 @@ def load_and_display_series(app):
         app.update_tables()
     else:
         app.progress_var.set(f"Loading all DICOM series in directory...")
-        app.series_data = create_series_df(app.directory, min_dcm_files)
+        app.series_data = create_series_df(app, min_dcm_files,)
         app.all_series_data = app.series_data.copy()
         if len(app.series_data) == 0:
             app.progress_var.set(f"No series found in directory. Please adjust parameters or change directory.")

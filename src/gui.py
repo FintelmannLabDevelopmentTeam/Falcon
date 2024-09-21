@@ -135,20 +135,22 @@ class CTScanSeriesPredictionApp:
             show_reset_popup(self.root, reset_prediction, prev_txt=prev_txt)
 
     def update_series_lists(self):
-        save_series_list_to_csv(self.all_series_data, self.directory)  # Save updated selection to CSV
-        predicted_series_identifiers = [(entry[1], entry[2], entry[3]) for entry in self.predicted_series]
-        self.series_data = [s for s in self.all_series_data if s[-1] and (s[1], s[2], s[3]) not in predicted_series_identifiers]
+        self.all_series_data.to_csv(os.path.join(self.directory, "list_of_series.csv"), index=True)
+        self.series_data = self.all_series_data.copy()
+        if len(self.predicted_series) != 0:
+            predicted_indices = self.predicted_series.index
+            print(f"Removing indices {predicted_indices}")
+            self.series_data.drop(predicted_indices, inplace=True)
         
-
     def open_edit_popup(self): #Called by Edit Button
         """Opens the pop-up for editing series selection."""
-        if self.all_series_data:
-            show_edit_popup(self.root, self.all_series_data)
+        if len(self.all_series_data)!=0:
+            show_edit_popup(self)
             self.update_series_lists()
             self.update_tables()
 
     def open_provide_popup(self):
-        show_provide_popup(self.root, self.all_series_data)
+        show_provide_popup(self)
         self.update_series_lists()
         self.update_tables()
     
