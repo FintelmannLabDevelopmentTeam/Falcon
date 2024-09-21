@@ -8,6 +8,7 @@ from datetime import timedelta
 from src.preprocessing.preprocess_series import preprocess_series
 from src.prediction.get_probabilities import get_body_part_probabilities, get_contrast_probability
 from src.prediction.prediction_utils import load_models, save_predictions_to_csv
+from src.user_interface.ui_utils import update_start_button, update_reset_button
 
 #series_info: [index, patient_name, study, series, len(dcm_files), root, mrn, series_uid, (body_part)]
 
@@ -51,10 +52,12 @@ def process_loop(app):
         app.predicted_series.to_csv(os.path.join(app.directory, "predictions.csv"), index=True, index_label='idx')
         #save_predictions_to_csv(app.predicted_series, app.directory)
     del models
-    app.start_button.config(text="Start Prediction")
+    #app.start_button.config(text="Start Prediction")
+    update_start_button(app, "Start")
     app.prediction_in_progress = False
     app.settings_button.config(state="normal")
-    app.reset_button.config(state="normal")
+    #app.reset_button.config(state="normal")
+    update_reset_button(app, "Active")
 
 def process(models, series_info, directory=None, device='cpu', save_nrrds=False, verbose=False):
     if verbose: print(f"\nProcessing series {series_info['Index']}:")

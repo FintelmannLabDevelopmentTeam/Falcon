@@ -4,6 +4,7 @@ import pydicom
 import pandas as pd
 import time
 from datetime import timedelta
+from src.user_interface.ui_utils import update_start_button, update_reset_button
 
 def load_data_from_csv(directory, mode):
     """Loads data from a CSV file, including selection status."""
@@ -176,13 +177,15 @@ def load_and_display_series(app):
         app.progress_var.set(f"Loaded state of previous prediction.")
         app.series_data = pd.read_csv(list_csv, index_col="idx")
         app.all_series_data = app.series_data.copy()
-        app.start_button.config(text="Start Prediction")
+        #app.start_button.config(text="Start Prediction")
+        update_start_button(app, "Start")
         app.provide_button.config(state='normal')
         if os.path.exists(prediction_csv):
             app.provide_button.config(state='disabled')
             app.predicted_series = pd.read_csv(prediction_csv, index_col="idx")
             app.is_paused = True
-            app.start_button.config(text="Continue Prediction")
+            #app.start_button.config(text="Continue Prediction")
+            update_start_button(app, "Start")
             app.settings_button.config(state="disabled")
             predicted_indices = app.predicted_series.index
             app.series_data = app.series_data.drop(predicted_indices)
@@ -198,5 +201,6 @@ def load_and_display_series(app):
         app.update_tables()
         app.progress_var.set(f"DICOM series loaded. Ready for prediction.")
         app.provide_button.config(state='normal')
-    app.reset_button.config(state="normal")
+    #app.reset_button.config(state="normal")
+    update_reset_button(app, "Active")
     app.edit_button.config(state="normal")  # Enable Edit button

@@ -1,4 +1,5 @@
-from tkinter import Label, Entry, Button, ttk, StringVar
+from tkinter import Label, Entry, Button, ttk, StringVar, Canvas
+from src.user_interface.ui_utils import ToolTip, update_start_button, update_reset_button
 
 def build_gui(app):
     app.root.title("CT Scan Series Prediction")
@@ -16,20 +17,28 @@ def build_gui(app):
     app.min_dcm_var = StringVar(value='20')
     app.min_dcm_entry = Entry(root, textvariable=app.min_dcm_var, width=10)
     app.min_dcm_entry.grid(row=1, column=1, sticky='w')
+    Button(root, text="List Series", command=app.list_series).grid(row=1, column=2, sticky='w')
 
     s = 3
+
     button_frame = ttk.Frame(root)
-    button_frame.grid(row=2, column=0, columnspan=3, sticky='ew', pady=10)
-    Button(button_frame, text="List Series", command=app.list_series).pack(side="left", padx=(10*s,10*s))
-    app.start_button = Button(button_frame, text="Start Prediction", command=app.start_prediction)
-    app.start_button.pack(side="left", padx=(10*s, 0))
+    button_frame.grid(row=2, column=0, columnspan=3, sticky='ew', pady=20, padx=(20,0))
+    #Button(button_frame, text="List Series", command=app.list_series).pack(side="left", padx=(10*s,10*s))
+
+    #Reset Button
+    app.reset_canvas = Canvas(button_frame, width=40, height=40, highlightthickness=0)
+    app.reset_canvas.pack(side="left", padx=(10 * s, 0))
+    app.reset_canvas.bind("<Button-1>", lambda event: app.reset())
+    update_reset_button(app,"Disabled")
+
+    #Start Button
+    app.start_canvas = Canvas(button_frame, width=40, height=40, highlightthickness=0)
+    app.start_canvas.pack(side="left", padx=(1 * s, 0))
+    update_start_button(app,"Start")
 
     app.settings_button = Button(button_frame, text="Settings", command=app.open_settings)
     app.settings_button.pack(side="left", padx=(50*s, 50*s))
     app.settings_button.config(state="normal")
-
-    app.reset_button = Button(button_frame, text="Reset Prediction", command=app.reset, state="disabled")
-    app.reset_button.pack(side="left", padx=(0,10*s))
 
     Button(button_frame, text="Exit", command=app.exit_application).pack(side="left", padx=(10*s, 10*s))
 

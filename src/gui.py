@@ -7,6 +7,7 @@ from src.user_interface.reset_popup import show_reset_popup
 from src.user_interface.edit_popup import show_edit_popup
 from src.user_interface.provide_popup import show_provide_popup
 from src.user_interface.build_gui import build_gui
+from src.user_interface.ui_utils import update_start_button, update_reset_button
 from src.preprocessing.series_manager import load_and_display_series, save_series_list_to_csv
 
 class CTScanSeriesPredictionApp:
@@ -20,6 +21,7 @@ class CTScanSeriesPredictionApp:
         self.index_mapping = {}
         self.directory = None
         self.device = get_device()
+        self.reset_allowed = False
 
         self.settings_manager = SettingsManager()
         self.settings = self.settings_manager.load_settings()
@@ -32,24 +34,31 @@ class CTScanSeriesPredictionApp:
             self.progress_var.set("Please answer the pop-up window.")
             self.settings_manager.open_settings_window(self.root)
             self.settings = self.settings_manager.load_settings()
+            self.update_table_columns()
+            self.update_tables()
             self.progress_var.set(prev_txt)
 
     def start_prediction(self): #Called by Start Prediction Button
         """Starts or resumes the prediction process for each series."""
-        if self.prediction_in_progress:
-            self.start_button.config(text="Resume Prediction")
+        if self.prediction_in_progress: #User pressed pause button
+            #self.start_button.config(text="Resume Prediction")
+            update_start_button(self,"Start")
             self.prediction_in_progress = False
             self.is_paused = True
-            self.reset_button.config(state="normal")
-        elif self.is_paused:
+            #self.reset_button.config(state="normal")
+            update_reset_button(self, "Active")
+        elif self.is_paused: #User pressed play during pause
             self.is_paused = False
             self.start_prediction()
-        else:
+        else: #Default Case, start process loop
+            if len(self.series_data) == 0: return #No series loaded, ignore click
             self.prediction_in_progress = True
             self.provide_button.config(state='disabled')
             self.settings_button.config(state="disabled")
-            self.reset_button.config(state="disabled")
-            self.start_button.config(text="Pause Prediction")
+            #self.reset_button.config(state="disabled")
+            update_reset_button(self, "Disabled")
+            #self.start_button.config(text="Pause Prediction")
+            update_start_button(self,"Pause")
             process_loop(self)
             
     def exit_application(self): #Called by Exit Button
@@ -66,7 +75,23 @@ class CTScanSeriesPredictionApp:
             self.settings["last_directory"] = selected_directory
             self.settings_manager.save_settings(self.settings)
         self.root.focus_force()
-
+    
+    def update_table_columns(self):
+        for row in self.series_table.get_children():
+            self.series_table.delete(row)
+        columns = [key for key, value in self.settings['series_table_columns'].items() if value]
+        self.series_table["columns"] = columns
+        for idx, col in enumerate(columns):
+            self.series_table.heading(col, text=col)
+            self.series_table.column(col, width=20 if idx == 0 else 100)
+        
+        for row in self.prediction_table.get_children():
+            self.prediction_table.delete(row)
+        columns = [key for key, value in self.settings['predicted_table_columns'].items() if value]
+        self.prediction_table["columns"] = columns
+        for idx, col in enumerate(columns):
+            self.prediction_table.heading(col, text=col)
+            self.prediction_table.column(col, width=20 if idx == 0 else 100)
 
     def update_tables(self): #Auxiliary Function
         """Update the tables with the latest data."""
@@ -97,6 +122,7 @@ class CTScanSeriesPredictionApp:
 
     def reset(self): #Called by Reset Button
         """Shows a confirmation popup before resetting progress."""
+        if not self.reset_allowed: return
         if self.directory:
             def reset_prediction(reset=True, prev_txt=''):
                 if reset:
@@ -121,11 +147,12 @@ class CTScanSeriesPredictionApp:
                     self.is_paused = False
                     self.prediction_in_progress = False
                     self.settings_button.config(state="normal")
-                    self.reset_button.config(state="disabled")
+                    #self.reset_button.config(state="disabled")
+                    update_reset_button(self, "Disabled")
                     self.edit_button.config(state="disabled")
                     self.provide_button.config(state="disabled")
-                    self.start_button.config(text="Start Prediction")
-
+                    #self.start_button.config(text="Start Prediction")
+                    update_start_button(self, mode="Start")
                     self.progress_var.set(f"Prediction progress reset. List Series to restart.")
                 else:
                     self.progress_var.set(prev_txt)
