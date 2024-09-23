@@ -6,60 +6,6 @@ import time
 from datetime import timedelta
 from src.user_interface.ui_utils import update_start_button, update_reset_button
 
-def load_data_from_csv(directory, mode):
-    """Loads data from a CSV file, including selection status."""
-    mode_dict = {'series': "list_of_series.csv", 'predictions': "predictions.csv"}
-    csv_file = os.path.join(directory, mode_dict[mode])
-    series = []
-    with open(csv_file, mode='r') as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip header
-        for row in reader:
-            if mode == 'series':
-                series.append(row[:-1] + [row[-1] == "True"])  # Convert 'selected' to boolean
-            else:
-                series.append(row)
-    return series
-
-def list_series_in_directory(directory, min_dcm_files):
-    """Lists all series in the directory with at least the minimum number of DICOM files."""
-    series_data = []
-    index = 1
-    for root_dir, dirs, files in os.walk(directory):
-        dcm_files = [f for f in files if f.endswith('.dcm')]
-        if len(dcm_files) >= min_dcm_files:
-            series_info = get_series_info(root_dir, dcm_files, index)
-            series_data.append(series_info + [""] + [True])  # Body-par label and Selected
-            index += 1
-    return series_data
-
-def get_series_info(root_dir, dcm_files, index):
-    """Extracts information from a DICOM series."""
-    path_parts = root_dir.split(os.sep)
-    patient_name = path_parts[-3]
-    study = path_parts[-2]
-    series = path_parts[-1]
-
-    try:
-        sample_dcm_path = os.path.join(root_dir, dcm_files[0])
-        dcm = pydicom.dcmread(sample_dcm_path)
-        mrn = dcm.PatientID
-        series_uid = dcm.SeriesInstanceUID
-    except Exception as e:
-        mrn = 'not found'
-        series_uid = 'not found'
-
-    return [index, patient_name, study, series, len(dcm_files), root_dir, mrn, series_uid]
-
-def save_series_list_to_csv(series_data, directory):
-    """Saves the list of series with their selection status to a CSV file."""
-    csv_file = os.path.join(directory, "list_of_series.csv")
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Index", "Patient", "Study", "Series", "DCM Files", "Path", "MRN", "Series UID", "Body Part Label","Selected"])
-        for row in series_data:
-            writer.writerow(row)
-
 def create_series_df(app, min_dcm_files):
     """Traverse the given directory and collect series information."""
     series_dict = {}  # Dictionary to hold series information
@@ -111,7 +57,7 @@ def create_series_df(app, min_dcm_files):
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (total_files - (i + 1)))
         eta = timedelta(seconds=seconds)
-        app.progress_var.set(f"{((i + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
+        app.progress_var.set(f"Series Listing Progress:     {((i + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
         app.progress_label.update()
 
     df = pd.DataFrame.from_dict(series_dict, orient="index")
@@ -163,30 +109,29 @@ def get_dicom_info(filepath):
 def load_and_display_series(app):
     """List series in the selected directory."""
     app.directory = app.directory_var.get()
-    if app.directory == '':
-        app.progress_var.set(f"Please specify a directory to load the series from.")
-        return
-    min_dcm_files = int(app.min_dcm_var.get()) if app.min_dcm_var.get().isdigit() else 1
+    app.out_dir = os.path.join(app.directory, app.settings["output_folder"])
+    min_dcm_files = app.settings["min_dcm"]
     if min_dcm_files < 1:
         min_dcm_files = 1
 
-    list_csv = os.path.join(app.directory, "list_of_series.csv")
-    prediction_csv = os.path.join(os.path.join(app.directory, "predictions.csv"))
+    list_csv = os.path.join(app.out_dir,"list_of_series.csv")
+    prediction_csv = os.path.join(os.path.join(app.out_dir, "predictions.csv"))
 
     if os.path.exists(list_csv):
-        app.progress_var.set(f"Loaded state of previous prediction.")
+        update_start_button(app, "Start")
+        app.progress_var.set(f"Loaded state of previous prediction. Press Play to continue or reset to delete the progress and start over.")
         app.series_data = pd.read_csv(list_csv, index_col="idx")
         app.all_series_data = app.series_data.copy()
         #app.start_button.config(text="Start Prediction")
         update_start_button(app, "Start")
-        app.provide_button.config(state='normal')
+        app.provide_button.config(state="normal", cursor="hand2")
         if os.path.exists(prediction_csv):
-            app.provide_button.config(state='disabled')
+            app.provide_button.config(state="disabled", cursor="arrow")
             app.predicted_series = pd.read_csv(prediction_csv, index_col="idx")
             app.is_paused = True
             #app.start_button.config(text="Continue Prediction")
             update_start_button(app, "Start")
-            app.settings_button.config(state="disabled")
+            app.settings_button.config(state="normal", cursor="hand2")
             predicted_indices = app.predicted_series.index
             app.series_data = app.series_data.drop(predicted_indices)
         app.update_tables()
@@ -195,12 +140,14 @@ def load_and_display_series(app):
         app.series_data = create_series_df(app, min_dcm_files,)
         app.all_series_data = app.series_data.copy()
         if len(app.series_data) == 0:
-            app.progress_var.set(f"No series found in directory. Please adjust parameters or change directory.")
+            app.progress_var.set(f"No series found in directory. Please adjust settings or change directory.")
             return
+        os.makedirs(app.out_dir, exist_ok=True)
         app.series_data.to_csv(list_csv, index=True)
         app.update_tables()
-        app.progress_var.set(f"DICOM series loaded. Ready for prediction.")
-        app.provide_button.config(state='normal')
-    #app.reset_button.config(state="normal")
+        app.progress_var.set(f"DICOM series loaded. Press Play to start the prediction.")
+        app.provide_button.config(state="normal", cursor="hand2")
+        update_start_button(app, "Start")
+    #app.reset_button.config(state="normal", cursor="hand2")
     update_reset_button(app, "Active")
-    app.edit_button.config(state="normal")  # Enable Edit button
+    app.edit_button.config(state="normal", cursor="hand2")  # Enable Edit button

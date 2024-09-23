@@ -1,5 +1,9 @@
+# © 2024 Philipp Kaess. All rights reserved.
+# Licensed under the MIT License. See LICENSE file in the project root for more information
+
 import os
 from tkinter import filedialog, END
+import shutil
 from src.processing_logic import process_loop
 from src.prediction.prediction_utils import get_device
 from src.user_interface.settings_manager import SettingsManager
@@ -8,7 +12,7 @@ from src.user_interface.edit_popup import show_edit_popup
 from src.user_interface.provide_popup import show_provide_popup
 from src.user_interface.build_gui import build_gui
 from src.user_interface.ui_utils import update_start_button, update_reset_button
-from src.preprocessing.series_manager import load_and_display_series, save_series_list_to_csv
+from src.preprocessing.series_manager import load_and_display_series
 
 class CTScanSeriesPredictionApp:
     def __init__(self, root):
@@ -20,6 +24,7 @@ class CTScanSeriesPredictionApp:
         self.prediction_in_progress = False
         self.index_mapping = {}
         self.directory = None
+        self.out_dir = None
         self.device = get_device()
         self.reset_allowed = False
 
@@ -32,11 +37,11 @@ class CTScanSeriesPredictionApp:
         if not self.prediction_in_progress:
             prev_txt = self.progress_var.get()
             self.progress_var.set("Please answer the pop-up window.")
-            self.settings_manager.open_settings_window(self.root)
+            reset_happened = self.settings_manager.open_settings_window(self)
             self.settings = self.settings_manager.load_settings()
             self.update_table_columns()
             self.update_tables()
-            self.progress_var.set(prev_txt)
+            if not reset_happened: self.progress_var.set(prev_txt)
 
     def start_prediction(self): #Called by Start Prediction Button
         """Starts or resumes the prediction process for each series."""
@@ -45,17 +50,19 @@ class CTScanSeriesPredictionApp:
             update_start_button(self,"Start")
             self.prediction_in_progress = False
             self.is_paused = True
-            #self.reset_button.config(state="normal")
+            #self.reset_button.config(state="normal", cursor="hand2")
             update_reset_button(self, "Active")
+            prev_txt = self.progress_var.get()
+            self.progress_var.set(prev_txt + "   (paused)")
         elif self.is_paused: #User pressed play during pause
             self.is_paused = False
             self.start_prediction()
         else: #Default Case, start process loop
             if len(self.series_data) == 0: return #No series loaded, ignore click
             self.prediction_in_progress = True
-            self.provide_button.config(state='disabled')
-            self.settings_button.config(state="disabled")
-            #self.reset_button.config(state="disabled")
+            self.provide_button.config(state="disabled", cursor="arrow")
+            self.settings_button.config(state="normal", cursor="hand2")
+            #self.reset_button.config(state="normal", cursor="hand2")
             update_reset_button(self, "Disabled")
             #self.start_button.config(text="Pause Prediction")
             update_start_button(self,"Pause")
@@ -74,6 +81,7 @@ class CTScanSeriesPredictionApp:
             self.directory = selected_directory
             self.settings["last_directory"] = selected_directory
             self.settings_manager.save_settings(self.settings)
+            self.list_series()
         self.root.focus_force()
     
     def update_table_columns(self):
@@ -120,25 +128,13 @@ class CTScanSeriesPredictionApp:
         """List and display series in the selected directory."""
         load_and_display_series(self)
 
-    def reset(self): #Called by Reset Button
+    def reset(self, show_confirm=True): #Called by Reset Button
         """Shows a confirmation popup before resetting progress."""
-        if not self.reset_allowed: return
+        if show_confirm and not self.reset_allowed: return
         if self.directory:
-            def reset_prediction(reset=True, prev_txt=''):
+            def reset_prediction(reset=True, prev_txt='', delete_files=True):
                 if reset:
-                    series_csv = os.path.join(self.directory, "list_of_series.csv")
-                    prediction_csv = os.path.join(self.directory, "predictions.csv")
-                    if os.path.exists(series_csv):
-                        os.remove(series_csv)
-                    if os.path.exists(prediction_csv):
-                        os.remove(prediction_csv)
-
-                    preprocessed_dir = os.path.join(os.path.join(self.directory, "preprocessed"))
-                    if os.path.exists(preprocessed_dir):
-                        for root, dirs, files in os.walk(preprocessed_dir):
-                            for file in files:
-                                os.remove(os.path.join(root, file))
-                        os.rmdir(preprocessed_dir)
+                    if delete_files and os.path.exists(self.out_dir): shutil.rmtree(self.out_dir)
 
                     self.series_data = []
                     self.all_series_data = []
@@ -146,23 +142,31 @@ class CTScanSeriesPredictionApp:
                     self.update_tables()
                     self.is_paused = False
                     self.prediction_in_progress = False
-                    self.settings_button.config(state="normal")
-                    #self.reset_button.config(state="disabled")
+                    self.settings_button.config(state="normal", cursor="hand2")
+                    #self.reset_button.config(state="normal", cursor="hand2")
                     update_reset_button(self, "Disabled")
-                    self.edit_button.config(state="disabled")
-                    self.provide_button.config(state="disabled")
+                    self.edit_button.config(state="normal", cursor="hand2")
+                    self.provide_button.config(state="normal", cursor="hand2")
                     #self.start_button.config(text="Start Prediction")
                     update_start_button(self, mode="Start")
-                    self.progress_var.set(f"Prediction progress reset. List Series to restart.")
+                    self.directory_var.set("")
+                    self.directory = None
+                    self.out_dir = None
+                    self.progress_var.set(f"Prediction progress reset. Select a directory to restart.")
+                    update_start_button(self, "Disabled")
                 else:
                     self.progress_var.set(prev_txt)
-
-            prev_txt = self.progress_var.get()
-            self.progress_var.set("Please answer the pop-up window.")
-            show_reset_popup(self.root, reset_prediction, prev_txt=prev_txt)
+            if show_confirm:
+                prev_txt = self.progress_var.get()
+                self.progress_var.set("Please answer the pop-up window.")
+                show_reset_popup(self.root, reset_prediction, prev_txt=prev_txt)
+            else:
+                reset_prediction(reset=True, delete_files=False)
+        else:
+            self.progress_var.set("Please select a directory to start.")
 
     def update_series_lists(self):
-        self.all_series_data.to_csv(os.path.join(self.directory, "list_of_series.csv"), index=True)
+        self.all_series_data.to_csv(os.path.join(self.out_dir, "list_of_series.csv"), index=True)
         self.series_data = self.all_series_data.copy()
         if len(self.predicted_series) != 0:
             predicted_indices = self.predicted_series.index

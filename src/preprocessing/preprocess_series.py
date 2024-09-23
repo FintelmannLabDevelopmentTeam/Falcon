@@ -8,8 +8,8 @@ from src.preprocessing.image_transformation import respacing, crop_image
 CROP_SHAPE = [200, 200, 100]
 SCALE_SIZE = [150,150,100]
 
-def preprocess_series(series_info, directory=None, verbose=False, save_nrrds=False):
-    pre_dir = os.path.join(directory, "preprocessed")
+def preprocess_series(series_info, out_directory=None, verbose=False, save_nrrds=False):
+    pre_dir = os.path.join(out_directory, "preprocessed")
     file_dir = os.path.join(pre_dir, str(series_info["Index"])+".nrrd")
     #if not os.path.exists(pre_dir): os.makedirs(pre_dir)
 

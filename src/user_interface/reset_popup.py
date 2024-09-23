@@ -13,7 +13,7 @@ def show_reset_popup(root, on_reset_callback, prev_txt):
     popup.focus_set()   
 
     # Confirmation message
-    Label(popup, text="Are you sure? Resetting will delete all preprocessing").pack(pady=0)
+    Label(popup, text="Are you sure? Resetting will delete all preprocessing").pack(pady=(20,0))
     Label(popup, text="and prediction progress in the current working directory.").pack(pady=0)
 
     # 'Reset' button - call the reset callback function

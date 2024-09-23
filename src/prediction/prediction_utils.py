@@ -57,11 +57,3 @@ def remove_module_prefix(state_dict):
 
 def get_device():
     return 'cuda:0' if torch.cuda.is_available() else 'cpu'
-
-def save_predictions_to_csv(predicted_series, directory):
-    """Saves the prediction results to a CSV file."""
-    csv_file = os.path.join(directory, "predictions.csv")
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Index", "Patient", "Study", "Series", "Body Part", "Body Part Confidence", "Contrast", "Contrast Confidence"])
-        writer.writerows(predicted_series)
