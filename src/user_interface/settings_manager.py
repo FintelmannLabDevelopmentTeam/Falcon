@@ -9,6 +9,7 @@ SETTINGS_FILE = "settings.json"
 class SettingsManager:
     def __init__(self):
         """Initializes the SettingsManager and loads settings from file."""
+        self.info_icon = get_info_icon((16,16))
         self.settings = {
             "store_nrrd_files": False,
             "verbose": False,               
@@ -94,45 +95,43 @@ class SettingsManager:
         min_dcm_var = StringVar(value=self.settings.get("min_dcm", 1))
         Entry(min_frame, textvariable=min_dcm_var, width=5).pack(side="left")
         Label(min_frame, text=" slices", font=("", 14, "bold")).pack(side="left")
-        icon_image2 = get_info_icon((16,16))
-        info_label2 = Label(min_frame, image=icon_image2)
+        info_label2 = Label(min_frame, image=self.info_icon)
         info_label2.pack(side="left", padx=(10,0))
         ToolTip(info_label2, 
                 """If you change this setting while series are already loaded, a reset will be performed automatically.""")
 
+        
         # Checkbox for storing NRRD files
         store_nrrd_var = BooleanVar(value=self.settings.get("store_nrrd_files", False))
-        Label(frame, text="Store preprocessed NRRD files:", font=("", 14, "bold")).grid(row=2, column=0, sticky="w", pady=10)
+        Label(frame, text="Store preprocessed NRRD files:", font=("", 14, "bold")).grid(row=3, column=0, sticky="w", pady=10)
         store_nrrd_checkbox = Checkbutton(frame, variable=store_nrrd_var)
-        store_nrrd_checkbox.grid(row=2, column=1)
+        store_nrrd_checkbox.grid(row=3, column=1)
 
         # Checkbox for detailed output
         verbose_var = BooleanVar(value=self.settings.get("verbose", False))
-        Label(frame, text="Detailed terminal output:", font=("", 14, "bold")).grid(row=3, column=0, sticky="w", pady=10)
+        Label(frame, text="Detailed terminal output:", font=("", 14, "bold")).grid(row=4, column=0, sticky="w", pady=10)
         verbose_checkbox = Checkbutton(frame, variable=verbose_var)
-        verbose_checkbox.grid(row=3, column=1)
+        verbose_checkbox.grid(row=4, column=1)
 
         #Output Folder Naming
         out_frame = ttk.Frame(frame)
-        out_frame.grid(row=4,column=0, sticky="w", pady=10)
+        out_frame.grid(row=5,column=0, sticky="w", pady=10)
         Label(out_frame, text="Output folder name: ", font=("", 14, "bold")).pack(side="left")
-        icon_image1 = get_info_icon((16,16))
-        info_label1 = Label(out_frame, image=icon_image1)
+        info_label1 = Label(out_frame, image=self.info_icon)
         info_label1.pack(side="left", padx=(10,0))
         ToolTip(info_label1, 
                 "During processing, a folder of this name will be created in the selected DICOM directory, to hold all output files. If you change this setting while series are already loaded, a reset will be performed automatically.")
         folder_var = StringVar(value=self.settings.get("output_folder", 1))
-        Entry(frame, textvariable=folder_var, width=20).grid(row=4, column=1)
+        Entry(frame, textvariable=folder_var, width=20).grid(row=5, column=1)
 
-        a = 5 #number of rows above table settings
+        a = 6 #number of rows above table settings
         # Table settings labels
         label_frame = ttk.Frame(frame)
         label_frame.grid(row=a, column=0, sticky="w", pady=(10,0))
         Label(label_frame, text="Edit visible table columns:", font=("", 14, "bold")).pack(side="left")
         
         #Information
-        icon_image = get_info_icon((16,16))
-        info_label = Label(label_frame, image=icon_image)
+        info_label = Label(label_frame, image=self.info_icon)
         info_label.pack(side="left", padx=(10,0))
         ToolTip(info_label, 
                 "This choice only affects the visibility in the tables, in the output CSV all columns will be stored.")

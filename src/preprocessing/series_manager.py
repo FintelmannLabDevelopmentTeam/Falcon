@@ -14,21 +14,28 @@ def create_series_df(app, min_dcm_files):
     app.progress_var.set("Initializing Series Listing...")
     app.progress_label.update()
     total_files = 0
-    i = 0
+    j = 0
     for _, _, files in os.walk(directory): total_files += len(files)
     start_time = time.time()
 
     for root, dirs, files in os.walk(directory):
+        i = 0
+        j += len(files)
         for file in files:
             filepath = os.path.join(root, file)
             i += 1
             # Check if the file is a DICOM file
-            if is_dicom_file(filepath):
+            if not is_dicom_file(filepath):
+                if i==3: break #allow up to 2 non-dcm files in a folder before considering it not a dcm series folder
+                continue
+            else:
                 dicom_info = get_dicom_info(filepath)
-                if dicom_info is None: continue
+                if dicom_info is None:
+                    if i==3: break #similarly, allow up to 2 dicom files without series info 
+                    continue
+                #a dicom file with series info has been found
                 series_uid = dicom_info["Series Instance UID"]
                 if series_uid not in series_dict:
-                    dicom_info = get_dicom_info(filepath)
                     # If the series is new, add it to the dict
                     series_dict[series_uid] = {
                         "Index": -1,
@@ -40,7 +47,7 @@ def create_series_df(app, min_dcm_files):
                         "Patient Folder": dicom_info["Patient Folder"],
                         "Study Folder": dicom_info["Study Folder"],
                         "Series Folder": dicom_info["Series Folder"],
-                        "Number of Slices": 1,
+                        "Number of Slices": len(files) + 1 - i, #subtract the invalid files
                         "Series Directory": root,
                         "Body Part Label": " ",
                         "BODY PART (BP)": " ",
@@ -49,15 +56,13 @@ def create_series_df(app, min_dcm_files):
                         "IVC Confidence": " ",
                         "Selected": True
                     }
-                else:
-                    # If the series exists, increment the slice count
-                    series_dict[series_uid]["Number of Slices"] += 1
+                break
                 
         #dir processed
         elapsed_time = time.time() - start_time
-        seconds = round((elapsed_time / (i + 1)) * (total_files - (i + 1)))
+        seconds = round((elapsed_time / (j + 1)) * (total_files - (i + 1)))
         eta = timedelta(seconds=seconds)
-        app.progress_var.set(f"Series Listing Progress:     {((i + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
+        app.progress_var.set(f"Series Listing Progress:     {((j + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
         app.progress_label.update()
 
     df = pd.DataFrame.from_dict(series_dict, orient="index")

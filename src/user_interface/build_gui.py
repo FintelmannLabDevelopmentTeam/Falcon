@@ -21,7 +21,7 @@ def build_gui(app):
     app.icon_image = get_info_icon((16,16))
     info_label = Label(frame1, image=app.icon_image)
     info_label.pack(side="left", padx=(0,10))
-    ToolTip(info_label, "In this directory, the tool will search for CT series, identified by their Series Instance UID. As long as every series has a unique Series Instance UID DICOM tag, arbitrarily many series are allowed in the directory, with an arbitrary folder structure.")
+    ToolTip(info_label, "In this directory, the tool will search for CT series, identified by their Series Instance UID. As long as every series has a unique Series Instance UID DICOM tag and is stored in a distinct series folder, arbitrarily many series are allowed in the directory, with an arbitrary folder structure.")
     app.directory_var = StringVar()
     app.directory_entry = Entry(frame1, textvariable=app.directory_var)
     app.directory_entry.pack(side="left", fill="x", expand=True, padx=(0,20), pady=(0,0))
