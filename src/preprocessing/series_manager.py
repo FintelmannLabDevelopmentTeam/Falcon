@@ -109,6 +109,9 @@ def get_dicom_info(filepath):
     try: data["Patient Folder"] = path_parts[-4]
     except: data["Patient Folder"] = "unknown"
 
+    for key in data: 
+        if data[key] == "": data[key] = ""
+
     return data
 
 def load_and_display_series(app):
