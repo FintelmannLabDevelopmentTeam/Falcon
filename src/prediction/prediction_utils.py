@@ -56,4 +56,5 @@ def remove_module_prefix(state_dict):
     return new_state_dict
 
 def get_device():
-    return 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    #return 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    return 'cpu'
