@@ -1,6 +1,8 @@
 import tkinter as tk
 import webbrowser
+import os
 from PIL import Image, ImageTk
+icon_folder = os.path.join(os.path.dirname(__file__), '..', 'icons')
 
 class ToolTip:
     """Creates a tooltip for a given widget and displays it near the mouse cursor."""
@@ -68,13 +70,13 @@ def resize_image(path, size):
 
 
 def get_info_icon(size=(16,16)):
-    return resize_image("/Users/philipp/prediction_gui/src/icons/info.png", size)
+    return resize_image(os.path.join(icon_folder, 'info.png'), size)
 
 def get_fintelmann_logo(width=40):
-    return resize_image("/Users/philipp/prediction_gui/src/icons/fintelmann_lab.png", width)
+    return resize_image(os.path.join(icon_folder, 'fintelmann_lab.png'), width)
 
 def get_mgh_logo(width=20):
-    return resize_image("/Users/philipp/prediction_gui/src/icons/harvard_mgh.png", width)
+    return resize_image(os.path.join(icon_folder, 'harvard_mgh.png'), width)
 
 def update_start_button(app, mode="Start"):
     app.start_canvas.delete("all")
