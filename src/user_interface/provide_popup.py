@@ -145,8 +145,8 @@ def get_bp_labels_from_csv(csv_path, app):
                               on='Series Instance UID', how='left', suffixes=('', '_label_df'))
 
         matched_df.index = original_index #Restore original index
-        app.all_series_data['Body Part Label'] = matched_df['Body Part Label_label_df'].fillna("")
-        unique_matches_count = (app.all_series_data['Body Part Label'] != "").sum()
+        app.all_series_data['Body Part Label'] = matched_df['Body Part Label_label_df'].fillna(" ")
+        unique_matches_count = (app.all_series_data['Body Part Label'] != " ").sum()
 
     except Exception as e:
         print(f"Error loading labels from CSV: {e}")

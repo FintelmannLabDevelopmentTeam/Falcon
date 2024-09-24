@@ -2,14 +2,14 @@ from tkinter import Label, Entry, Button, ttk, StringVar, Canvas
 from src.user_interface.ui_utils import ToolTip, update_start_button, update_reset_button, get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
 
 def build_gui(app):
-    app.root.title("PACIFIC - Part And Contrast Identification for Full-body Imaging & Curation")
-    app.root.geometry("1100x800")  # Initial window size that fits the content
+    app.root.title("FALCON  -  Full-body CT Anatomy Labeling and IV Contrast Detection")
+    app.root.geometry("1200x800")  # Initial window size that fits the content
     root = app.root
     title_frame = ttk.Frame(root)
     title_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(20,20), padx=(20,0))
     title_frame.grid_columnconfigure(1, weight=1) 
-    Label(title_frame, text="PACIFIC", font=("", 24, "bold")).grid(row=0,column=0, sticky="w")
-    Label(title_frame, text=" -  Part And Contrast Identification for Full-body Imaging & Curation", font=("", 20, "")).grid(row=0,column=1, sticky="w")
+    Label(title_frame, text="FALCON", font=("", 26, "bold")).grid(row=0,column=0, sticky="w")
+    Label(title_frame, text="  -   Full-body CT Anatomy Labeling and IV Contrast Detection", font=("", 20, "")).grid(row=0,column=1, sticky="w")
     app.finti_logo = get_fintelmann_logo(width=300)
     app.finti = Label(title_frame, image=app.finti_logo, cursor="hand2")
     app.finti.grid(row=0,column=2, sticky="e")
@@ -23,7 +23,6 @@ def build_gui(app):
     info_label.pack(side="left", padx=(0,10))
     ToolTip(info_label, "In this directory, the tool will search for CT series, identified by their Series Instance UID. As long as every series has a unique Series Instance UID DICOM tag, arbitrarily many series are allowed in the directory, with an arbitrary folder structure.")
     app.directory_var = StringVar()
-    #app.directory_var.set(app.settings.get("last_directory", ""))
     app.directory_entry = Entry(frame1, textvariable=app.directory_var)
     app.directory_entry.pack(side="left", fill="x", expand=True, padx=(0,20), pady=(0,0))
     Button(frame1, text="Browse", command=app.select_directory, cursor="hand2").pack(side="right", pady=(0,5))
@@ -111,10 +110,17 @@ def build_gui(app):
     app.settings_button = Button(copyright_frame,text="Settings",command=app.open_settings, cursor="hand2")
     app.settings_button.grid(row=0, column=0, pady=(0,10), sticky="w")
     
-    Label(copyright_frame, text="© 2024 Philipp Kaess - Fintelmann Lab, MGH, Department of Radiology. All rights reserved. Licensed under the MIT License.", 
-          font=("",10,"")).grid(row=0, column=1,sticky="s")
+    middle_frame = ttk.Frame(copyright_frame)
+    middle_frame.grid(row=0, column=1)
+    app.mgh_logo = get_mgh_logo(width=50)
+    app.mgh = Label(middle_frame, image=app.mgh_logo)
+    app.mgh.pack(side="left", padx=(0,20))
+    Label(middle_frame, text="© 2024 Philipp Kaess. All rights reserved. Licensed under the MIT License.", 
+          font=("",10,"")).pack(side="left")
     
-    Button(copyright_frame, text="Exit", command=app.exit_application, cursor="hand2").grid(row=0,column=2, sticky="e", pady=(0,10))
+
+    
+    Button(copyright_frame, text="Exit", command=app.exit_application, cursor="hand2").grid(row=0,column=3, sticky="e", pady=(0,10))
 
     
     

@@ -43,9 +43,9 @@ def create_series_df(app, min_dcm_files):
                         "Number of Slices": 1,
                         "Series Directory": root,
                         "Body Part Label": " ",
-                        "Body Part (BP)": " ",
+                        "BODY PART (BP)": " ",
                         "BP Confidence": " ",
-                        "IV Contrast (IVC)": " ",
+                        "IV CONTRAST (IVC)": " ",
                         "IVC Confidence": " ",
                         "Selected": True
                     }

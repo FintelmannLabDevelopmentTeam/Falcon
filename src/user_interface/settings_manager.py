@@ -12,7 +12,6 @@ class SettingsManager:
         self.settings = {
             "store_nrrd_files": False,
             "verbose": False,               
-            "last_directory": "",
             "min_dcm": 20,
             "output_folder": "out",
             "series_table_columns": {
@@ -28,9 +27,9 @@ class SettingsManager:
                 'Number of Slices': True,
                 'Series Directory': True,
                 "Body Part Label": True,
-                "Body Part (BP)": False,
+                "BODY PART (BP)": False,
                 "BP Confidence": False,
-                "IV Contrast (IVC)": False,
+                "IV CONTRAST (IVC)": False,
                 "IVC Confidence": False,
                 "Selected": False
             },
@@ -47,9 +46,9 @@ class SettingsManager:
                 'Number of Slices': False,
                 'Series Directory': False,
                 "Body Part Label": False,
-                "Body Part (BP)": True,
+                "BODY PART (BP)": True,
                 "BP Confidence": True,
-                "IV Contrast (IVC)": True,
+                "IV CONTRAST (IVC)": True,
                 "IVC Confidence": True,
                 "Selected": False
             }
@@ -148,7 +147,7 @@ class SettingsManager:
         predicted_checkboxes = {}
 
         no_edit_keys = ['Index', 'Body Part Label', 'Selected']
-        predict_only_keys = ["Body Part (BP)", "BP Confidence", "IV Contrast (IVC)" ,"IVC Confidence"]
+        predict_only_keys = ["BODY PART (BP)", "BP Confidence", "IV CONTRAST (IVC)" ,"IVC Confidence"]
         editable_keys = [key for key in self.settings['series_table_columns'].keys() if key not in no_edit_keys]
         # Create checkboxes for both series and predicted table columns
         for i, key in enumerate(editable_keys):

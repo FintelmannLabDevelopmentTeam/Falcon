@@ -4,7 +4,7 @@ def show_finished_popup(app):
     """Shows a confirmation popup before resetting the prediction."""
     root = app.root
     popup = Toplevel(root)
-    popup.title("Confirm Reset")
+    popup.title("Prediction complete")
     popup.geometry("400x150")
     popup.resizable(False, False)
 
@@ -15,7 +15,7 @@ def show_finished_popup(app):
 
     # Confirmation message
     Label(popup, text="Prediction complete. The resulting csv containing the").pack(pady=(20,0))
-    Label(popup, text="detailed prediction result is stored in TODO").pack(pady=0)
+    Label(popup, text=f"detailed prediction result is stored in {app.settings['output_folder']}/predictions.csv").pack(pady=0)
 
     # 'Reset' button - call the reset callback function
     def confirm():

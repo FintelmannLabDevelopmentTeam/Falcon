@@ -79,8 +79,6 @@ class CTScanSeriesPredictionApp:
         if selected_directory:
             self.directory_var.set(selected_directory)
             self.directory = selected_directory
-            self.settings["last_directory"] = selected_directory
-            self.settings_manager.save_settings(self.settings)
             self.list_series()
         self.root.focus_force()
     
@@ -145,10 +143,8 @@ class CTScanSeriesPredictionApp:
                     self.settings_button.config(state="normal", cursor="hand2")
                     #self.reset_button.config(state="normal", cursor="hand2")
                     update_reset_button(self, "Disabled")
-                    self.edit_button.config(state="normal", cursor="hand2")
-                    self.provide_button.config(state="normal", cursor="hand2")
-                    #self.start_button.config(text="Start Prediction")
-                    update_start_button(self, mode="Start")
+                    self.edit_button.config(state="disabled", cursor="arrow")
+                    self.provide_button.config(state="disabled", cursor="arrow")
                     self.directory_var.set("")
                     self.directory = None
                     self.out_dir = None
@@ -170,7 +166,6 @@ class CTScanSeriesPredictionApp:
         self.series_data = self.all_series_data.copy()
         if len(self.predicted_series) != 0:
             predicted_indices = self.predicted_series.index
-            print(f"Removing indices {predicted_indices}")
             self.series_data.drop(predicted_indices, inplace=True)
         
     def open_edit_popup(self): #Called by Edit Button

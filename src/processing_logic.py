@@ -40,7 +40,7 @@ def process_loop(app):
             del models
             gc.collect()
             return
-        series["Body Part (BP)"], series["BP Confidence"], series["IV Contrast (IVC)"], series["IVC Confidence"] = process(models, 
+        series["BODY PART (BP)"], series["BP Confidence"], series["IV CONTRAST (IVC)"], series["IVC Confidence"] = process(models, 
                                     series, app.out_dir, device=app.device, save_nrrds=store_preprocessed, verbose=verbose)
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
