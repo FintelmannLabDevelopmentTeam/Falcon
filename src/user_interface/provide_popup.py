@@ -1,6 +1,6 @@
 from tkinter import Toplevel, Label, Button, Checkbutton, IntVar, DISABLED, NORMAL, Entry, filedialog, font
 import pandas as pd
-import copy
+from src.user_interface.ui_utils import get_font_size
 
 LABEL_DICT = {0:'HeadNeck', 1:'Chest', 2:'Abdomen'}
 
@@ -19,7 +19,7 @@ def show_provide_popup(app):
     popup.attributes("-topmost", True)  
     popup.focus_set()   
     popup.grab_set()
-    Label(popup, text="Please select one of the following options to provide body-part labels:", font=("",18,"bold")).grid(row=0, 
+    Label(popup, text="Please select one of the following options to provide body-part labels:", font=("",get_font_size("xlarge"),"bold")).grid(row=0, 
                                                                             column=0, columnspan=2, padx=10, pady=10)
     
     # Create IntVar for checkboxes, only one can be selected at a time

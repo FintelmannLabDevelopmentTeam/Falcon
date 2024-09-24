@@ -113,3 +113,12 @@ def update_reset_button(app, mode="Active"):
 
 def call_fintelmann_website():
     webbrowser.open("https://fintelmannlab.mgh.harvard.edu")
+
+def get_font_size(size="large"):
+    if size == "title": a = 20
+    elif size == "huge": a = 10
+    elif size == "xlarge": a = 4
+    elif size == "large": a = 2
+    else: a = 0
+    b = tk.font.nametofont("TkDefaultFont").cget("size")
+    return a + b

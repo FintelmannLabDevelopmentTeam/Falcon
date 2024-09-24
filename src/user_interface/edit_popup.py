@@ -1,5 +1,5 @@
 from tkinter import Toplevel, BooleanVar, Button, Label, Frame, Checkbutton, Scrollbar, VERTICAL, HORIZONTAL, Canvas, BOTH, LEFT, RIGHT, X, Y, BOTTOM
-
+from src.user_interface.ui_utils import get_font_size
 def show_edit_popup(app):
     """Displays the Edit Series pop-up window for selecting series to process."""
     root = app.root
@@ -13,7 +13,7 @@ def show_edit_popup(app):
     popup.focus_set()   
 
     # Label at the top
-    Label(popup, text="Select DICOM Series to Process:", font=("",18,"bold")).pack(pady=10)
+    Label(popup, text="Select DICOM Series to Process:", font=("",get_font_size("xlarge"),"bold")).pack(pady=10)
 
     # Frame around the scrollable area to make it distinguishable
     outer_frame = Frame(popup, relief="solid", bd=2)  # Add border to distinguish the area
@@ -46,9 +46,9 @@ def show_edit_popup(app):
     columns = [key for key, value in app.settings['series_table_columns'].items() if value]
 
     # Create the header row
-    Label(table_frame, text="Index", font=("",16,"bold"),width=5).grid(row=0, column=0, columnspan=2)
+    Label(table_frame, text="Index", font=("",get_font_size("large"),"bold"),width=5).grid(row=0, column=0, columnspan=2)
     for idx, col in enumerate(columns[1:]):
-        Label(table_frame, text=col, font=("",16,"bold"),width=20).grid(row=0, column=idx+2)
+        Label(table_frame, text=col, font=("",get_font_size("large"),"bold"),width=20).grid(row=0, column=idx+2)
 
     # Add rows with checkboxes and series data
     for row_idx, (_, series) in enumerate(app.all_series_data.iterrows()):

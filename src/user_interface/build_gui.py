@@ -1,15 +1,15 @@
-from tkinter import Label, Entry, Button, ttk, StringVar, Canvas
-from src.user_interface.ui_utils import ToolTip, update_start_button, update_reset_button, get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
+from tkinter import Label, Entry, Button, ttk, StringVar, Canvas, font
+from src.user_interface.ui_utils import ToolTip, get_font_size, update_start_button, update_reset_button, get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
 
 def build_gui(app):
-    app.root.title("FALCON  -  Full-body CT Anatomy Labeling and IV Contrast Detection")
+    app.root.title("FALCON  -  Fully-automated Labeling of CT Anatomy and IV Contrast")
     app.root.geometry("1200x800")  # Initial window size that fits the content
     root = app.root
     title_frame = ttk.Frame(root)
     title_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(20,20), padx=(20,0))
     title_frame.grid_columnconfigure(1, weight=1) 
-    Label(title_frame, text="FALCON", font=("", 26, "bold")).grid(row=0,column=0, sticky="w")
-    Label(title_frame, text="  -   Full-body CT Anatomy Labeling and IV Contrast Detection", font=("", 20, "")).grid(row=0,column=1, sticky="w")
+    Label(title_frame, text="FALCON", font=("", get_font_size("title"), "bold")).grid(row=0,column=0, sticky="w")
+    Label(title_frame, text="  -   Fully-automated Labeling of CT Anatomy and IV Contrast", font=("", get_font_size("huge"), "")).grid(row=0,column=1, sticky="w")
     app.finti_logo = get_fintelmann_logo(width=300)
     app.finti = Label(title_frame, image=app.finti_logo, cursor="hand2")
     app.finti.grid(row=0,column=2, sticky="e")

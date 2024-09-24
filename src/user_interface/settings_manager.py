@@ -1,7 +1,7 @@
 import json
 from tkinter import Toplevel, Label, Checkbutton, BooleanVar, Button, StringVar, Entry
 from tkinter import ttk
-from src.user_interface.ui_utils import get_info_icon, ToolTip
+from src.user_interface.ui_utils import get_info_icon, ToolTip, get_font_size
 
 
 SETTINGS_FILE = "settings.json"
@@ -92,10 +92,10 @@ class SettingsManager:
         #Minimum dcm selection
         min_frame = ttk.Frame(frame)
         min_frame.grid(row=1,column=0,columnspan=2, sticky="w", pady=10)
-        Label(min_frame, text="Filter out series with less than ", font=("", 14, "bold")).pack(side="left")
+        Label(min_frame, text="Filter out series with less than ", font=("", get_font_size("large"), "bold")).pack(side="left")
         min_dcm_var = StringVar(value=self.settings.get("min_dcm", 1))
         Entry(min_frame, textvariable=min_dcm_var, width=5).pack(side="left")
-        Label(min_frame, text=" slices", font=("", 14, "bold")).pack(side="left")
+        Label(min_frame, text=" slices", font=("", get_font_size("large"), "bold")).pack(side="left")
         info_label2 = Label(min_frame, image=self.info_icon)
         info_label2.pack(side="left", padx=(10,0))
         ToolTip(info_label2, 
@@ -103,26 +103,26 @@ class SettingsManager:
 
         # Checkbox for dcm ending
         dcm_ending_var = BooleanVar(value=self.settings.get("dcm_ending", True))
-        Label(frame, text="Assume all DICOMS have a .dcm ending:", font=("", 14, "bold")).grid(row=2, column=0, sticky="w", pady=10)
+        Label(frame, text="Assume all DICOMS have a .dcm ending:", font=("", get_font_size("large"), "bold")).grid(row=2, column=0, sticky="w", pady=10)
         dcm_ending_checkbox = Checkbutton(frame, variable=dcm_ending_var)
         dcm_ending_checkbox.grid(row=2, column=1)
 
         # Checkbox for storing NRRD files
         store_nrrd_var = BooleanVar(value=self.settings.get("store_nrrd_files", False))
-        Label(frame, text="Store preprocessed NRRD files:", font=("", 14, "bold")).grid(row=3, column=0, sticky="w", pady=10)
+        Label(frame, text="Store preprocessed NRRD files:", font=("", get_font_size("large"), "bold")).grid(row=3, column=0, sticky="w", pady=10)
         store_nrrd_checkbox = Checkbutton(frame, variable=store_nrrd_var)
         store_nrrd_checkbox.grid(row=3, column=1)
 
         # Checkbox for detailed output
         verbose_var = BooleanVar(value=self.settings.get("verbose", False))
-        Label(frame, text="Detailed terminal output:", font=("", 14, "bold")).grid(row=4, column=0, sticky="w", pady=10)
+        Label(frame, text="Detailed terminal output:", font=("", get_font_size("large"), "bold")).grid(row=4, column=0, sticky="w", pady=10)
         verbose_checkbox = Checkbutton(frame, variable=verbose_var)
         verbose_checkbox.grid(row=4, column=1)
 
         #Output Folder Naming
         out_frame = ttk.Frame(frame)
         out_frame.grid(row=5,column=0, sticky="w", pady=10)
-        Label(out_frame, text="Output folder name: ", font=("", 14, "bold")).pack(side="left")
+        Label(out_frame, text="Output folder name: ", font=("", get_font_size("large"), "bold")).pack(side="left")
         info_label1 = Label(out_frame, image=self.info_icon)
         info_label1.pack(side="left", padx=(10,0))
         ToolTip(info_label1, 
@@ -134,7 +134,7 @@ class SettingsManager:
         # Table settings labels
         label_frame = ttk.Frame(frame)
         label_frame.grid(row=a, column=0, sticky="w", pady=(10,0))
-        Label(label_frame, text="Edit visible table columns:", font=("", 14, "bold")).pack(side="left")
+        Label(label_frame, text="Edit visible table columns:", font=("", get_font_size("large"), "bold")).pack(side="left")
         
         #Information
         info_label = Label(label_frame, image=self.info_icon)
@@ -144,8 +144,8 @@ class SettingsManager:
 
 
 
-        Label(frame, text="Unprocessed", font=("", 14, "bold"), width=10).grid(row=a+1, column=1, sticky="w",pady=(10,0))
-        Label(frame, text="Processed", font=("", 14, "bold"), width=10).grid(row=a+1, column=2, sticky="w",pady=(10,0))
+        Label(frame, text="Unprocessed", font=("", get_font_size("large"), "bold"), width=10).grid(row=a+1, column=1, sticky="w",pady=(10,0))
+        Label(frame, text="Processed", font=("", get_font_size("large"), "bold"), width=10).grid(row=a+1, column=2, sticky="w",pady=(10,0))
 
         # Dictionary to hold the BooleanVars for checkboxes
         series_checkboxes = {}
