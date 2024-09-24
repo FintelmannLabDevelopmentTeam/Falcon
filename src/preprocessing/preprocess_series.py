@@ -8,7 +8,7 @@ from src.preprocessing.image_transformation import respacing, crop_image
 CROP_SHAPE = [200, 200, 100]
 SCALE_SIZE = [150,150,100]
 
-def preprocess_series(series_info, out_directory=None, verbose=False, save_nrrds=False):
+def preprocess_series(series_info, out_directory=None, verbose=False, save_nrrds=False, dicoms_by_ending=True):
     pre_dir = os.path.join(out_directory, "preprocessed")
     file_dir = os.path.join(pre_dir, str(series_info["Index"])+".nrrd")
     #if not os.path.exists(pre_dir): os.makedirs(pre_dir)
@@ -19,7 +19,8 @@ def preprocess_series(series_info, out_directory=None, verbose=False, save_nrrds
             sitk_object = sitk.ReadImage(file_dir)
             return sitk_object
         if verbose: print("No preprocessed file exists for this series, initiating preprocessing:")
-        sitk_object = get_sitk_from_dicom(series_info["Series Directory"], verbose=verbose)
+        sitk_object = get_sitk_from_dicom(series_info["Series Directory"], verbose=verbose, by_ending=dicoms_by_ending)
+        if verbose: print("Loaded sitk object, initiating respacing and cropping...")
         respaced_object = respacing(sitk_object, interp_type='linear',new_spacing=(1, 1, 3))
         cropped_object = crop_image(respaced_object, crop_shape=CROP_SHAPE, clipping=-1000, 
                                     scale_size=SCALE_SIZE, verbose=verbose, mass_centered=False)

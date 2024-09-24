@@ -19,6 +19,7 @@ REV_LABEL_DICT = {'HeadNeck':0, 'Chest':1, 'Abdomen':2}
 def process_loop(app):
     verbose = app.settings.get("verbose",False)
     store_preprocessed = app.settings.get("store_nrrd_files", False)
+    dicoms_by_ending = app.settings.get("dcm_ending", True)
     if verbose: print("Starting the processing of series...")
     start_time = time.time()
     #to_do = [s for s in app.series_data if s[-1]]  # Only process selected series
@@ -41,7 +42,7 @@ def process_loop(app):
             gc.collect()
             return
         series["BODY PART (BP)"], series["BP Confidence"], series["IV CONTRAST (IVC)"], series["IVC Confidence"] = process(models, 
-                                    series, app.out_dir, device=app.device, save_nrrds=store_preprocessed, verbose=verbose)
+                                    series, app.out_dir, device=app.device, save_nrrds=store_preprocessed, verbose=verbose, dicoms_by_ending=dicoms_by_ending)
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
         eta = timedelta(seconds=seconds)
@@ -58,9 +59,9 @@ def process_loop(app):
     update_reset_button(app, "Active")
     show_finished_popup(app)
 
-def process(models, series_info, out_directory=None, device='cpu', save_nrrds=False, verbose=False):
+def process(models, series_info, out_directory=None, device='cpu', save_nrrds=False, verbose=False, dicoms_by_ending=True):
     if verbose: print(f"\nProcessing series {series_info['Index']}:")
-    img = preprocess_series(series_info=series_info, out_directory=out_directory, verbose=verbose, save_nrrds=save_nrrds)
+    img = preprocess_series(series_info=series_info, out_directory=out_directory, verbose=verbose, save_nrrds=save_nrrds, dicoms_by_ending=dicoms_by_ending)
     if img is None: return 'ERROR', 'ERROR', 'ERROR', 'ERROR'
     if models is None: return 'DUMMY', '100%', 'DUMMY', '100%'
     part_model, hn_model, ch_model, ab_model = models
@@ -87,6 +88,8 @@ def process(models, series_info, out_directory=None, device='cpu', save_nrrds=Fa
     if contrast == 0: contrast_prob = 1-contrast_prob
     c_conf = str(round(contrast_prob*100,2))+"%"
     if verbose: print(f"Contrast Prediction: {contrast} with confidence {c_conf}")
+    del img
+    gc.collect()
     return LABEL_DICT[part_prediction], part_conf, contrast, c_conf
 
 

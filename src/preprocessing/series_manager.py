@@ -5,6 +5,7 @@ import pandas as pd
 import time
 from datetime import timedelta
 from src.user_interface.ui_utils import update_start_button, update_reset_button
+from src.preprocessing.dicom_loading import is_dicom_file
 
 def create_series_df(app, min_dcm_files):
     """Traverse the given directory and collect series information."""
@@ -17,6 +18,7 @@ def create_series_df(app, min_dcm_files):
     j = 0
     for _, _, files in os.walk(directory): total_files += len(files)
     start_time = time.time()
+    by_ending=app.settings["dcm_ending"]
 
     for root, dirs, files in os.walk(directory):
         i = 0
@@ -25,7 +27,7 @@ def create_series_df(app, min_dcm_files):
             filepath = os.path.join(root, file)
             i += 1
             # Check if the file is a DICOM file
-            if not is_dicom_file(filepath):
+            if not is_dicom_file(filepath, by_ending=by_ending):
                 if i==3: break #allow up to 2 non-dcm files in a folder before considering it not a dcm series folder
                 continue
             else:
@@ -60,7 +62,7 @@ def create_series_df(app, min_dcm_files):
                 
         #dir processed
         elapsed_time = time.time() - start_time
-        seconds = round((elapsed_time / (j + 1)) * (total_files - (i + 1)))
+        seconds = round((elapsed_time / (j + 1)) * (total_files - (j + 1)))
         eta = timedelta(seconds=seconds)
         app.progress_var.set(f"Series Listing Progress:     {((j + 1) / total_files * 100):.2f}%       ETA: {str(eta)}")
         app.progress_label.update()
@@ -71,12 +73,6 @@ def create_series_df(app, min_dcm_files):
     filtered_df["idx"] = range(1, len(filtered_df)+1)
     filtered_df.set_index("idx", inplace=True)
     return filtered_df
-
-def is_dicom_file(filepath):
-    """Check if a file is a DICOM file by reading basic metadata."""
-    try: pydicom.dcmread(filepath, stop_before_pixels=True)
-    except: return False
-    return True
 
 def get_dicom_info(filepath):
     """Extract key information from a DICOM file, handling missing attributes."""
@@ -110,7 +106,7 @@ def get_dicom_info(filepath):
     except: data["Patient Folder"] = "unknown"
 
     for key in data: 
-        if data[key] == "": data[key] = ""
+        if data[key] == "": data[key] = " "
 
     return data
 

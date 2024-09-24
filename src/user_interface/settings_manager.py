@@ -14,6 +14,7 @@ class SettingsManager:
             "store_nrrd_files": False,
             "verbose": False,               
             "min_dcm": 20,
+            "dcm_ending": True,
             "output_folder": "out",
             "series_table_columns": {
                 'Index': True,
@@ -100,7 +101,12 @@ class SettingsManager:
         ToolTip(info_label2, 
                 """If you change this setting while series are already loaded, a reset will be performed automatically.""")
 
-        
+        # Checkbox for dcm ending
+        dcm_ending_var = BooleanVar(value=self.settings.get("dcm_ending", True))
+        Label(frame, text="Assume all DICOMS have a .dcm ending:", font=("", 14, "bold")).grid(row=2, column=0, sticky="w", pady=10)
+        dcm_ending_checkbox = Checkbutton(frame, variable=dcm_ending_var)
+        dcm_ending_checkbox.grid(row=2, column=1)
+
         # Checkbox for storing NRRD files
         store_nrrd_var = BooleanVar(value=self.settings.get("store_nrrd_files", False))
         Label(frame, text="Store preprocessed NRRD files:", font=("", 14, "bold")).grid(row=3, column=0, sticky="w", pady=10)
@@ -178,11 +184,13 @@ class SettingsManager:
 
             new_min = int(min_dcm_var.get()) if min_dcm_var.get().isdigit() else 1
             new_out_folder = folder_var.get()
-            if new_min != self.settings["min_dcm"] or new_out_folder!=self.settings["output_folder"]:
+            new_dcm_ending = dcm_ending_var.get()
+            if new_min != self.settings.get("min_dcm",1) or new_out_folder!=self.settings.get("output_folder", "out") or new_dcm_ending!=self.settings.get("dcm_ending",True):
                 app.reset(show_confirm=False)
                 self.reset_happened=True
             self.settings["min_dcm"] = new_min
             self.settings["output_folder"] = new_out_folder
+            self.settings["dcm_ending"] = new_dcm_ending
             
                 
 

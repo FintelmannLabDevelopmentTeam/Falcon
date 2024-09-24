@@ -119,7 +119,7 @@ class CTScanSeriesPredictionApp:
         if len(self.predicted_series) != 0:
             predicted_table_columns = list(self.prediction_table["columns"])
             filtered_prediction_data = self.predicted_series[predicted_table_columns]
-            for row in filtered_prediction_data.itertuples(index=False):
+            for row in reversed(list(filtered_prediction_data.itertuples(index=False))):
                 self.prediction_table.insert("", END, values=row)
 
     def list_series(self): #Called by List Series Button
