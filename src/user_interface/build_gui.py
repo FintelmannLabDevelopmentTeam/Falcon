@@ -4,7 +4,7 @@ from src.user_interface.ui_utils import get_info_icon, get_fintelmann_logo, get_
 
 def build_gui(app):
     app.root.title("FALCON  -  Fully-automated Labeling of CT Anatomy and IV Contrast")
-    app.root.geometry("1200x800")  # Initial window size that fits the content
+    app.root.geometry("1400x800")  # Initial window size that fits the content
     root = app.root
     title_frame = ttk.Frame(root)
     title_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(20,20), padx=(20,0))
