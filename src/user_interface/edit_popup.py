@@ -1,4 +1,4 @@
-from tkinter import Toplevel, BooleanVar, Button, Label, Frame, Checkbutton, Scrollbar, VERTICAL, HORIZONTAL, Canvas, BOTH, LEFT, RIGHT, X, Y, BOTTOM
+from tkinter import ttk, Toplevel, BooleanVar, Button, Label, Frame, Checkbutton, Scrollbar, VERTICAL, HORIZONTAL, Canvas, BOTH, LEFT, RIGHT, X, Y, BOTTOM
 from src.user_interface.ui_utils import get_font_size
 def show_edit_popup(app):
     """Displays the Edit Series pop-up window for selecting series to process."""
@@ -6,14 +6,22 @@ def show_edit_popup(app):
     popup = Toplevel(root)
     popup.title("Edit Series to process")
     popup.geometry("800x600")  # Adjust size as needed
+    popup.protocol("WM_DELETE_WINDOW", lambda: on_popup_close(popup, canvas)) #Catch if user closes window
+
 
     # Keep popup above the main window
     popup.transient(root)  # Set the popup as a child of the main window
     popup.attributes("-topmost", True)  # Keep it on top
     popup.focus_set()   
-
+    checkbox_vars = []
     # Label at the top
-    Label(popup, text="Select DICOM Series to Process:", font=("",get_font_size("xlarge"),"bold")).pack(pady=10)
+    top_frame = ttk.Frame(popup)
+    top_frame.pack(pady=10, padx=10, fill="x")
+    Label(top_frame, text="Select DICOM Series to Process:", font=("",get_font_size("xlarge"),"bold")).pack(side="left")
+
+    toggle_button = Button(top_frame, text="Unselect all", command=lambda: toggle(checkbox_vars))
+    toggle_button.pack(side="right")
+
 
     # Frame around the scrollable area to make it distinguishable
     outer_frame = Frame(popup, relief="solid", bd=2)  # Add border to distinguish the area
@@ -42,7 +50,7 @@ def show_edit_popup(app):
     canvas.configure(xscrollcommand=h_scrollbar.set)
 
     # List of checkbox variables
-    checkbox_vars = []
+
     columns = [key for key, value in app.settings['series_table_columns'].items() if value]
 
     # Create the header row
@@ -78,7 +86,18 @@ def show_edit_popup(app):
         """Saves the selected series and closes the pop-up."""
         selected_vars = [var.get() for var in checkbox_vars]
         app.all_series_data['Selected'] = selected_vars
-        popup.destroy()
+        on_popup_close(popup, canvas)
+
+    def toggle(checkbox_vars):
+        current = toggle_button.cget("text")
+        if current == "Unselect all":
+            for var in checkbox_vars: var.set(False)
+            toggle_button.config(text="Select all")
+        elif current == "Select all":
+            for var in checkbox_vars: var.set(True)
+            toggle_button.config(text="Unselect all")
+        else: raise Exception("FATAL ERROR IN TOGGLE BUTTON IN EDIT WINDOW")
+
 
     popup.grab_set()
     popup.wait_window()
@@ -102,3 +121,9 @@ def on_mouse_wheel(event, widget, scroll_up=None):
         widget.yview_scroll(1, "units")
 
 
+def on_popup_close(popup, widget):
+    """Handles unbinding and closing when the popup is closed."""
+    widget.unbind_all("<MouseWheel>")  # Unbind mouse wheel event
+    widget.unbind_all("<Button-4>")  # Unbind for older Mac scroll up
+    widget.unbind_all("<Button-5>")  # Unbind for older Mac scroll down
+    popup.destroy()
