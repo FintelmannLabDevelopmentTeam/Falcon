@@ -15,7 +15,7 @@ from src.user_interface.ui_utils import update_start_button, update_reset_button
 from src.preprocessing.series_manager import load_and_display_series
 
 class CTScanSeriesPredictionApp:
-    def __init__(self, root):
+    def __init__(self, root, version="v1.0.0"):
         self.root = root
         self.series_data = []
         self.all_series_data = []
@@ -36,7 +36,7 @@ class CTScanSeriesPredictionApp:
 
         self.settings_manager = SettingsManager()
         self.settings = self.settings_manager.load_settings()
-        build_gui(self)
+        build_gui(self, version=version)
 
     def open_settings(self): #Called by Settings Button
         """Opens the settings window."""

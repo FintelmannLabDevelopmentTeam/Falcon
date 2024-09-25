@@ -1,10 +1,10 @@
 import json
 from tkinter import Toplevel, Label, Checkbutton, BooleanVar, Button, StringVar, Entry
 from tkinter import ttk
-from src.user_interface.ui_utils import get_info_icon, ToolTip, get_font_size
+from src.user_interface.ui_utils import get_info_icon, ToolTip, get_font_size, resource_path
 
 
-SETTINGS_FILE = "settings.json"
+SETTINGS_FILE = resource_path('settings.json')
 
 class SettingsManager:
     def __init__(self):

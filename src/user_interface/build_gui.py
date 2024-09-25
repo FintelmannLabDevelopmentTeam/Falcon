@@ -2,7 +2,7 @@ from tkinter import Label, Entry, Button, ttk, StringVar, Canvas, font
 from src.user_interface.ui_utils import ToolTip, get_font_size, update_start_button, update_reset_button, setup_sorting
 from src.user_interface.ui_utils import get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
 
-def build_gui(app):
+def build_gui(app, version="v1.0.0"):
     app.root.title("FALCON  -  Fully-automated Labeling of CT Anatomy and IV Contrast")
     app.root.geometry("1400x800")  # Initial window size that fits the content
     root = app.root
@@ -124,7 +124,7 @@ def build_gui(app):
     app.mgh_logo = get_mgh_logo(width=50)
     app.mgh = Label(middle_frame, image=app.mgh_logo)
     app.mgh.pack(side="left", padx=(0,20))
-    Label(middle_frame, text="© 2024 Philipp Kaess. All rights reserved. Licensed under the MIT License.", 
+    Label(middle_frame, text=f"© 2024 Philipp Kaess. All rights reserved. Licensed under the MIT License.   {version}", 
           font=("",10,"")).pack(side="left")
     
 

@@ -1,8 +1,23 @@
 import tkinter as tk
+from tkinter import font
 import webbrowser
 import os
 from PIL import Image, ImageTk
-icon_folder = os.path.join(os.path.dirname(__file__), '..', 'icons')
+import sys
+
+
+# Get the absolute path to the folder where the executable/script is located
+def resource_path(relative_path):
+    """ Get the absolute path to the resource (used for images and settings) """
+    if hasattr(sys, '_MEIPASS'):
+        # If bundled with PyInstaller, use the temp directory
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")  # Use current directory if running normally
+    
+    return os.path.join(base_path, relative_path)
+
+icon_folder = resource_path('icons')
 
 class ToolTip:
     """Creates a tooltip for a given widget and displays it near the mouse cursor."""
@@ -84,6 +99,9 @@ def get_fintelmann_logo(width=40):
 def get_mgh_logo(width=20):
     return resize_image(os.path.join(icon_folder, 'harvard_mgh.png'), width)
 
+def get_falcon(width=100):
+    return resize_image(os.path.join(icon_folder, 'falcon.png'), width)
+
 def update_start_button(app, mode="Start"):
     app.start_canvas.delete("all")
     app.start_canvas.unbind("<Button-1>")
@@ -126,7 +144,7 @@ def get_font_size(size="large"):
     elif size == "xlarge": a = 4
     elif size == "large": a = 2
     else: a = 0
-    b = tk.font.nametofont("TkDefaultFont").cget("size")
+    b = font.nametofont("TkDefaultFont").cget("size")
     return a + b
 
 
@@ -209,3 +227,6 @@ def reset_sorting(app):
     app._series_sort_reverse = True
     app._prediction_sort_column = None
     app._prediction_sort_reverse = True
+
+
+

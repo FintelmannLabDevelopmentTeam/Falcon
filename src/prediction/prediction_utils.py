@@ -2,16 +2,13 @@ from PrivateModelArchitectures.classification import ResNet9
 import torch
 import os
 import csv
-
-# Get the path to source
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+from src.user_interface.ui_utils import resource_path
 
 # Define relative model paths
-BODY_PART_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "body_part_model.pth")
-ABDOMEN_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "abdomen_model.pth")
-CHEST_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "chest_model.pth")
-HN_MODEL_PATH = os.path.join(BASE_DIR, "prediction", "models", "headneck_model.pth")
+BODY_PART_MODEL_PATH = resource_path("models/body_part_model.pth")
+ABDOMEN_MODEL_PATH = resource_path("models/abdomen_model.pth")
+CHEST_MODEL_PATH = resource_path("models/chest_model.pth")
+HN_MODEL_PATH = resource_path("models/headneck_model.pth")
 
 
 def load_models(device='cpu'):
