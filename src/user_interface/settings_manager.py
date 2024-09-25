@@ -16,6 +16,7 @@ class SettingsManager:
             "min_dcm": 20,
             "dcm_ending": True,
             "output_folder": "out",
+            "human_readable_output": True, 
             "series_table_columns": {
                 'Index': True,
                 'Patient ID': True,
@@ -99,7 +100,7 @@ class SettingsManager:
         info_label2 = Label(min_frame, image=self.info_icon)
         info_label2.pack(side="left", padx=(10,0))
         ToolTip(info_label2, 
-                """If you change this setting while series are already loaded, a reset will be performed automatically.""")
+                """If you change this setting while series are already loaded, a reset will be performed automatically.""", parent_window=settings_window)
 
         # Checkbox for dcm ending
         dcm_ending_var = BooleanVar(value=self.settings.get("dcm_ending", True))
@@ -115,22 +116,36 @@ class SettingsManager:
 
         # Checkbox for detailed output
         verbose_var = BooleanVar(value=self.settings.get("verbose", False))
-        Label(frame, text="Detailed terminal output:", font=("", get_font_size("large"), "bold")).grid(row=4, column=0, sticky="w", pady=10)
+        Label(frame, text="Print detailed processing steps in system terminal:", font=("", get_font_size("large"), "bold")).grid(row=4, column=0, sticky="w", pady=10)
         verbose_checkbox = Checkbutton(frame, variable=verbose_var)
         verbose_checkbox.grid(row=4, column=1)
 
+        # Checkbox for human readable output
+        human_frame = ttk.Frame(frame)
+        human_frame.grid(row=5, column=0,sticky="w", pady=10)
+        human_var = BooleanVar(value=self.settings.get("human_readable_output", True))
+        Label(human_frame, text="Use human-readable output for prediction:", font=("", get_font_size("large"), "bold")).pack(side="left")
+        info_label3 = Label(human_frame, image=self.info_icon)
+        info_label3.pack(side="left", padx=(10,0))
+        ToolTip(info_label3, 
+                "If activated, the predictions stored in the CSV (and shown in the table) will be human-readable, i.e. Yes / No instead of 1 / 0 or 95.2% instead of 0.952. If you aim to further process the prediction CSV by code, deactivating this option might make sense to simplify the data reading from the CSV.",
+                parent_window=settings_window)
+        human_checkbox = Checkbutton(frame, variable=human_var)
+        human_checkbox.grid(row=5, column=1)
+
         #Output Folder Naming
         out_frame = ttk.Frame(frame)
-        out_frame.grid(row=5,column=0, sticky="w", pady=10)
+        out_frame.grid(row=6,column=0, sticky="w", pady=10)
         Label(out_frame, text="Output folder name: ", font=("", get_font_size("large"), "bold")).pack(side="left")
         info_label1 = Label(out_frame, image=self.info_icon)
         info_label1.pack(side="left", padx=(10,0))
         ToolTip(info_label1, 
-                "During processing, a folder of this name will be created in the selected DICOM directory, to hold all output files. If you change this setting while series are already loaded, a reset will be performed automatically.")
-        folder_var = StringVar(value=self.settings.get("output_folder", 1))
-        Entry(frame, textvariable=folder_var, width=20).grid(row=5, column=1)
+                "During processing, a folder of this name will be created in the selected DICOM directory, to hold all output files. If you change this setting while series are already loaded, a reset will be performed automatically.",
+                parent_window=settings_window)
+        folder_var = StringVar(value=self.settings.get("output_folder", "out"))
+        Entry(frame, textvariable=folder_var, width=20).grid(row=6, column=1)
 
-        a = 6 #number of rows above table settings
+        a = 7 #number of rows above table settings
         # Table settings labels
         label_frame = ttk.Frame(frame)
         label_frame.grid(row=a, column=0, sticky="w", pady=(10,0))
@@ -140,7 +155,8 @@ class SettingsManager:
         info_label = Label(label_frame, image=self.info_icon)
         info_label.pack(side="left", padx=(10,0))
         ToolTip(info_label, 
-                "This choice only affects the visibility in the tables, in the output CSV all columns will be stored.")
+                "This choice only affects the visibility in the tables, in the output CSV all columns will be stored.",
+                parent_window=settings_window)
 
 
 
@@ -179,6 +195,7 @@ class SettingsManager:
             # Update the settings with the current checkbox values
             self.settings["store_nrrd_files"] = store_nrrd_var.get()
             self.settings["verbose"] = verbose_var.get()
+            self.settings["human_readable_output"] = human_var.get()
             
 
 
@@ -191,6 +208,7 @@ class SettingsManager:
             self.settings["min_dcm"] = new_min
             self.settings["output_folder"] = new_out_folder
             self.settings["dcm_ending"] = new_dcm_ending
+            
             
                 
 

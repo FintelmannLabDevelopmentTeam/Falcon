@@ -45,8 +45,8 @@ def get_contrast_probability(model, img, part, device='cpu'):
     img = torch.from_numpy(data_3ch).float().to(device)
     with torch.no_grad():
         output = model(img.unsqueeze(0)).cpu() #add batch dimension
-    probability = torch.sigmoid(output).squeeze() #remove batch dimension and class dimension
-    return probability.cpu().numpy()
+    probability = torch.sigmoid(output).squeeze().cpu().numpy() #remove batch dimension and class dimension
+    return probability.item()
 
 def get_slices(part):
     if part == 'HeadNeck': return HN_SLICE_RANGE, HN_SLICE_IDX

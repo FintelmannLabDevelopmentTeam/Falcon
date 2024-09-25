@@ -11,7 +11,7 @@ from src.user_interface.reset_popup import show_reset_popup
 from src.user_interface.edit_popup import show_edit_popup
 from src.user_interface.provide_popup import show_provide_popup
 from src.user_interface.build_gui import build_gui
-from src.user_interface.ui_utils import update_start_button, update_reset_button
+from src.user_interface.ui_utils import update_start_button, update_reset_button, setup_sorting, reset_sorting, sort_df
 from src.preprocessing.series_manager import load_and_display_series
 
 class CTScanSeriesPredictionApp:
@@ -27,6 +27,12 @@ class CTScanSeriesPredictionApp:
         self.out_dir = None
         self.device = get_device()
         self.reset_allowed = False
+
+        #For table sorting
+        self._series_sort_column = None
+        self._series_sort_reverse = True
+        self._prediction_sort_column = None
+        self._prediction_sort_reverse = True
 
         self.settings_manager = SettingsManager()
         self.settings = self.settings_manager.load_settings()
@@ -98,29 +104,51 @@ class CTScanSeriesPredictionApp:
         for idx, col in enumerate(columns):
             self.prediction_table.heading(col, text=col)
             self.prediction_table.column(col, width=20 if idx == 0 else 100)
+        setup_sorting(self)
 
-    def update_tables(self): #Auxiliary Function
+    def update_tables(self):
         """Update the tables with the latest data."""
         # Clear the series_table
         for item in self.series_table.get_children():
             self.series_table.delete(item)
 
         if len(self.series_data) != 0:
+            num_selected = len(self.series_data[self.series_data["Selected"] == True])
+            num_hidden = len(self.series_data) - num_selected
+            txt = f"{num_selected} series"
+            if num_hidden != 0:
+                txt += f"  ({num_hidden} hidden)"
+            self.unprocessed_label.config(text=txt)
+
             series_table_columns = list(self.series_table["columns"])
-            filtered_series_data = self.series_data[self.series_data["Selected"]==True]
+            filtered_series_data = self.series_data[self.series_data["Selected"] == True]
             filtered_series_data = filtered_series_data[series_table_columns]
+
+            #As in the unprocessde table, we sort the df rather than the table, no sorting necessary here, the df is sorted already
+
             for row in filtered_series_data.itertuples(index=False):
                 self.series_table.insert("", END, values=row)
+        else:
+            self.unprocessed_label.config(text="")
 
         # Clear the prediction_table
         for item in self.prediction_table.get_children():
             self.prediction_table.delete(item)
-        
+
         if len(self.predicted_series) != 0:
+            self.processed_label.config(text=f"{len(self.predicted_series)} series")
             predicted_table_columns = list(self.prediction_table["columns"])
-            filtered_prediction_data = self.predicted_series[predicted_table_columns]
+            filtered_prediction_data = self.predicted_series[predicted_table_columns].copy()
+
+            # The prediction df is not sorted, thus we need to sort the table here
+            if self._prediction_sort_column:
+                filtered_prediction_data.sort_values(by=self._prediction_sort_column, ascending=not self._prediction_sort_reverse, inplace=True)
+
             for row in reversed(list(filtered_prediction_data.itertuples(index=False))):
                 self.prediction_table.insert("", END, values=row)
+        else:
+            self.processed_label.config(text="")
+
 
     def list_series(self): #Called by List Series Button
         """List and display series in the selected directory."""
@@ -137,6 +165,7 @@ class CTScanSeriesPredictionApp:
                     self.series_data = []
                     self.all_series_data = []
                     self.predicted_series = []
+                    reset_sorting(self)
                     self.update_tables()
                     self.is_paused = False
                     self.prediction_in_progress = False
@@ -167,6 +196,9 @@ class CTScanSeriesPredictionApp:
         if len(self.predicted_series) != 0:
             predicted_indices = self.predicted_series.index
             self.series_data.drop(predicted_indices, inplace=True)
+        if self._series_sort_column:
+            sort_df(self._series_sort_column, not self._series_sort_reverse, self.series_data)
+
         
     def open_edit_popup(self): #Called by Edit Button
         """Opens the pop-up for editing series selection."""

@@ -67,6 +67,8 @@ def show_edit_popup(app):
     table_frame.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
 
+    bind_mousewheel(canvas)
+
     # Create a frame at the bottom for the Save button
     save_button_frame = Frame(popup)
     save_button_frame.pack(fill=X, pady=10)  # Ensure it's placed below the scrollable area
@@ -81,68 +83,22 @@ def show_edit_popup(app):
     popup.grab_set()
     popup.wait_window()
 
+def bind_mousewheel(widget):
+    """Bind mousewheel events for different platforms."""
+    widget.bind_all("<MouseWheel>", lambda event: on_mouse_wheel(event, widget))  # Windows and Linux
+    widget.bind_all("<Button-4>", lambda event: on_mouse_wheel(event, widget, scroll_up=True))  # Older Mac systems (scroll up)
+    widget.bind_all("<Button-5>", lambda event: on_mouse_wheel(event, widget, scroll_up=False))  # Older Mac systems (scroll down)
 
-def show_edit_popup_old(app):
-    """Displays the Edit Series pop-up window for selecting series to process."""
-    root = app.root
-    popup = Toplevel(root)
-    popup.title("Edit Series to process")
-    popup.geometry("800x600")  # Adjust size as needed
+def on_mouse_wheel(event, widget, scroll_up=None):
+    """Handle mouse wheel scrolling for cross-platform support."""
+    if scroll_up is None:  # Windows, Linux and newer Mac
+        if event.delta < 0:
+            widget.yview_scroll(3, "units")  # Scroll down
+        else:
+            widget.yview_scroll(-3, "units")  # Scroll up
+    elif scroll_up:  # Old MacOS scroll up (Button-4)
+        widget.yview_scroll(-1, "units")
+    else:  # Old MacOS scroll down (Button-5)
+        widget.yview_scroll(1, "units")
 
-    # Keep popup above the main window
-    popup.transient(root)          # Set the popup as a child of the main window
-    popup.attributes("-topmost", True)  # Keep it on top
-    popup.focus_set()   
-
-    # Label at the top
-    Label(popup, text="Select Series to Process:").pack(pady=10)
-
-    # Create a canvas to hold the checkboxes and series data
-    canvas = Canvas(popup)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-    # Add a scrollbar
-    scrollbar = Scrollbar(popup, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    # Create a frame to hold the table
-    table_frame = Frame(canvas)
-    canvas.create_window((0, 0), window=table_frame, anchor='nw')
-
-    # List of checkbox variables
-    checkbox_vars = []
-    columns = [key for key, value in app.settings['series_table_columns'].items() if value]
-    Label(table_frame, text="Index", width=5).grid(row=0, column=0, columnspan=2)
-    for idx, col in enumerate(columns[1:5]):
-        Label(table_frame, text=col, width=20).grid(row=0, column=idx+2)
-
-    # Add rows with checkboxes and series data
-    for row_idx, (_,series) in enumerate(app.all_series_data.iterrows()):
-        var = BooleanVar(value=series["Selected"])  # Initialize with the current "selected" status
-        checkbox_vars.append(var)
-
-        # Create checkboxes in the first column
-        checkbutton = Checkbutton(table_frame, variable=var)
-        checkbutton.grid(row=row_idx + 1, column=0)
-
-        # Add the series data in other columns
-        for col_idx, col in enumerate(columns[:5]):
-            Label(table_frame, text=series[col], width=2 if col_idx==0 else 20).grid(row=row_idx + 1, column=col_idx+1)
-
-    # Update the canvas scrolling region
-    table_frame.update_idletasks()
-    canvas.config(scrollregion=canvas.bbox("all"))
-
-    # Save button at the bottom
-    Button(popup, text="Save", command=lambda: save_and_close(checkbox_vars)).pack(pady=10)
-
-    def save_and_close(checkbox_vars):
-        """Saves the selected series and closes the pop-up."""
-        selected_vars = [var.get() for var in checkbox_vars]
-        app.all_series_data['Selected'] = selected_vars
-        popup.destroy()
-
-    popup.grab_set()
-    popup.wait_window()
 

@@ -1,5 +1,6 @@
 from tkinter import Label, Entry, Button, ttk, StringVar, Canvas, font
-from src.user_interface.ui_utils import ToolTip, get_font_size, update_start_button, update_reset_button, get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
+from src.user_interface.ui_utils import ToolTip, get_font_size, update_start_button, update_reset_button, setup_sorting
+from src.user_interface.ui_utils import get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
 
 def build_gui(app):
     app.root.title("FALCON  -  Fully-automated Labeling of CT Anatomy and IV Contrast")
@@ -58,7 +59,11 @@ def build_gui(app):
     separator2.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(0,20), padx=(20,20))
 
     # Create table for DICOM series with a scrollbar
-    Label(root, text="Unprocessed Series:").grid(row=6, column=0, sticky='w', padx=(20,0))
+    unprocessed_frame = ttk.Frame(root)
+    unprocessed_frame.grid(row=6, column=0, columnspan=2, sticky='w', padx=(20,0))
+    Label(unprocessed_frame, text="Unprocessed Series: ").pack(side="left")
+    app.unprocessed_label = Label(unprocessed_frame, text="")
+    app.unprocessed_label.pack(side="left")
 
     frame = ttk.Frame(root)
     frame.grid(row=6, column=1, columnspan=2, sticky="e")
@@ -68,8 +73,6 @@ def build_gui(app):
 
     app.edit_button = Button(frame, text="Edit Selection", state="disabled", command=app.open_edit_popup, cursor="arrow")
     app.edit_button.pack(side="right")
-
-
 
     # Scrollbar for series_table
     series_scrollbar = ttk.Scrollbar(root, orient="vertical")
@@ -83,7 +86,11 @@ def build_gui(app):
         app.series_table.heading(col, text=col)
         app.series_table.column(col, width=20 if idx==0 else 100)
 
-    Label(root, text="Processed Series:").grid(row=8, column=0, sticky='w', padx=(20,0))
+    processed_frame = ttk.Frame(root)
+    processed_frame.grid(row=8, column=0, columnspan=2, sticky='w', padx=(20,0))
+    Label(processed_frame, text="Processed Series: ").pack(side="left")
+    app.processed_label = Label(processed_frame, text="")
+    app.processed_label.pack(side="left")
 
     # Scrollbar for prediction_table
     prediction_scrollbar = ttk.Scrollbar(root, orient="vertical")
@@ -103,6 +110,8 @@ def build_gui(app):
     app.root.grid_columnconfigure(0, weight=1)
     app.root.grid_rowconfigure(7, weight=1)  # Unprocessed series table expands vertically
     app.root.grid_rowconfigure(9, weight=1)  # Processed series table expands vertically
+
+    app.update_table_columns()
 
     copyright_frame = ttk.Frame(root)
     copyright_frame.grid(row=11, column=0, columnspan=3, padx=(20,0), pady=(0,5), sticky="esw")

@@ -20,6 +20,7 @@ def process_loop(app):
     verbose = app.settings.get("verbose",False)
     store_preprocessed = app.settings.get("store_nrrd_files", False)
     dicoms_by_ending = app.settings.get("dcm_ending", True)
+    human_readable = app.settings.get("human_readable_output", True)
     if verbose: print("Starting the processing of series...")
     start_time = time.time()
     #to_do = [s for s in app.series_data if s[-1]]  # Only process selected series
@@ -42,7 +43,7 @@ def process_loop(app):
             gc.collect()
             return
         series["BODY PART (BP)"], series["BP Confidence"], series["IV CONTRAST (IVC)"], series["IVC Confidence"] = process(models, 
-                                    series, app.out_dir, device=app.device, save_nrrds=store_preprocessed, verbose=verbose, dicoms_by_ending=dicoms_by_ending)
+                                    series, app.out_dir, device=app.device, save_nrrds=store_preprocessed, verbose=verbose, dicoms_by_ending=dicoms_by_ending, human_readable=human_readable)
         elapsed_time = time.time() - start_time
         seconds = round((elapsed_time / (i + 1)) * (num_pred - (i + 1)))
         eta = timedelta(seconds=seconds)
@@ -50,7 +51,7 @@ def process_loop(app):
         app.series_data = app.series_data[app.series_data["Index"]!=series["Index"]]
         app.predicted_series = pd.concat([app.predicted_series, pd.DataFrame([series], columns=app.predicted_series.columns)], ignore_index=False)
         app.update_tables()
-        app.predicted_series.to_csv(os.path.join(app.out_dir, "predictions.csv"), index=True, index_label='idx')
+        app.predicted_series.sort_values(by='Index', ascending=True, inplace=False).to_csv(os.path.join(app.out_dir, "predictions.csv"), index=True, index_label='idx')
     del models
     #app.start_button.config(text="Start Prediction")
     update_start_button(app, "Start")
@@ -59,11 +60,11 @@ def process_loop(app):
     update_reset_button(app, "Active")
     show_finished_popup(app)
 
-def process(models, series_info, out_directory=None, device='cpu', save_nrrds=False, verbose=False, dicoms_by_ending=True):
+def process(models, series_info, out_directory=None, device='cpu', save_nrrds=False, verbose=False, dicoms_by_ending=True, human_readable=True):
     if verbose: print(f"\nProcessing series {series_info['Index']}:")
     img = preprocess_series(series_info=series_info, out_directory=out_directory, verbose=verbose, save_nrrds=save_nrrds, dicoms_by_ending=dicoms_by_ending)
     if img is None: return 'ERROR', 'ERROR', 'ERROR', 'ERROR'
-    if models is None: return 'DUMMY', '100%', 'DUMMY', '100%'
+    if models is None: return 'NOMODEL', 'NOMODEL', 'NOMODEL', 'NOMODEL'
     part_model, hn_model, ch_model, ab_model = models
     
     if series_info["Body Part Label"] in ["HeadNeck", "Chest", "Abdomen"]:
@@ -75,7 +76,7 @@ def process(models, series_info, out_directory=None, device='cpu', save_nrrds=Fa
         part_probabilities = get_body_part_probabilities(part_model, img, device=device)
         if verbose: print(f"Got the following probabilities for the body-parts: {part_probabilities}")
         part_prediction = np.argmax(part_probabilities)
-        part_conf = str(round(part_probabilities[part_prediction]*100,2))+"%"
+        part_conf = str(round(part_probabilities[part_prediction]*100,2))+"%" if human_readable else round(part_probabilities[part_prediction],4)
         if verbose: print(f"Body-Part Prediction: {LABEL_DICT[part_prediction]} with confidence {part_conf}")
 
     if verbose: print(f"Initiating contrast prediction with the {LABEL_DICT[part_prediction]}-Model...")
@@ -84,9 +85,11 @@ def process(models, series_info, out_directory=None, device='cpu', save_nrrds=Fa
     elif part_prediction == 2: contrast_prob = get_contrast_probability(ab_model, img, part='Abdomen', device=device)
     else: raise Exception("FATAL ERROR, UNKNOWN PART PREDICTION.")
 
-    contrast = (contrast_prob >= 0.5).astype(int)
+    contrast_dict = {0:"No", 1:"Yes"}
+    contrast = int((contrast_prob >= 0.5))
     if contrast == 0: contrast_prob = 1-contrast_prob
-    c_conf = str(round(contrast_prob*100,2))+"%"
+    if human_readable: contrast = contrast_dict[contrast]
+    c_conf = str(round(contrast_prob*100,2))+"%" if human_readable else round(contrast_prob,4)
     if verbose: print(f"Contrast Prediction: {contrast} with confidence {c_conf}")
     del img
     gc.collect()

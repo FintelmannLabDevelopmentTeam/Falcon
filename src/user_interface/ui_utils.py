@@ -6,17 +6,22 @@ icon_folder = os.path.join(os.path.dirname(__file__), '..', 'icons')
 
 class ToolTip:
     """Creates a tooltip for a given widget and displays it near the mouse cursor."""
-    def __init__(self, widget, text):
+    def __init__(self, widget, text, parent_window=None):
         self.widget = widget
         self.text = text
         self.tooltip_window = None
         self.wraplength = 600
+        self.parent_window = parent_window  # Store reference to parent window
         self.widget.bind("<Enter>", self.show_tooltip)
         self.widget.bind("<Leave>", self.hide_tooltip)
         self.widget.bind("<Motion>", self.move_tooltip)  # Bind mouse motion to move tooltip
 
     def show_tooltip(self, event=None):
         """Display the tooltip window near the mouse."""
+        # Disable the "topmost" attribute temporarily if the parent window exists
+        if self.parent_window and self.parent_window.wm_attributes("-topmost"):
+            self.parent_window.attributes("-topmost", False)
+
         self.tooltip_window = tk.Toplevel(self.widget)
         self.tooltip_window.wm_overrideredirect(True)  # Remove window decorations
         label = tk.Label(self.tooltip_window, text=self.text, relief="solid", borderwidth=1, 
@@ -38,8 +43,9 @@ class ToolTip:
             self.tooltip_window.destroy()
             self.tooltip_window = None
 
-
-
+        # Restore the "topmost" attribute if the parent window exists
+        if self.parent_window:
+            self.parent_window.attributes("-topmost", True)
 
 
 def resize_image(path, size):
@@ -122,3 +128,84 @@ def get_font_size(size="large"):
     else: a = 0
     b = tk.font.nametofont("TkDefaultFont").cget("size")
     return a + b
+
+
+#Table sorting utils
+
+def sort_df(column, reverse, data_source):
+    """Sort table by the specified column."""
+    data_source.sort_values(by=column, ascending=not reverse, inplace=True)
+    return not reverse  # Toggle the sort direction for the next click
+
+def setup_sorting(app):
+    """Attach sorting to column headers."""
+
+    # Setup sorting for the series_table
+    for col in app.series_table["columns"]:
+        app.series_table.heading(col, text=col, command=lambda c=col: sort_series_table(app,c))
+
+    # Setup sorting for the prediction_table
+    for col in app.prediction_table["columns"]:
+        app.prediction_table.heading(col, text=col, command=lambda c=col: sort_prediction_table(app,c))
+    
+    col = app._prediction_sort_column
+    if col:
+        if app._prediction_sort_reverse:
+            app.prediction_table.heading(col, text=f"{col} ▲")
+        else:
+            app.prediction_table.heading(col, text=f"{col} ▼")
+    
+    col = app._series_sort_column
+    if col:
+        if app._series_sort_reverse:
+            app.series_table.heading(col, text=f"{col} ▲")
+        else:
+            app.series_table.heading(col, text=f"{col} ▼")
+
+def sort_series_table(app, col):
+    """Handle sorting for series_table."""
+    if len(app.series_data) == 0 or app.prediction_in_progress: return
+    # Reset other columns' heading text (remove sort indicators)
+    for column in app.series_table["columns"]:
+        if column != col:
+            app.series_table.heading(column, text=column)
+
+    # Toggle sorting on the selected column
+    app._series_sort_reverse = sort_df(col, app._series_sort_reverse, app.series_data) #sort dataframe
+    
+    # Update the heading to show the triangle for ascending/descending
+    if app._series_sort_reverse:
+        app.series_table.heading(col, text=f"{col} ▲")
+    else:
+        app.series_table.heading(col, text=f"{col} ▼")
+
+    app._series_sort_column = col
+    app.update_tables()
+
+def sort_prediction_table(app, col):
+    """Handle sorting for prediction_table."""
+    if len(app.predicted_series) == 0 or app.prediction_in_progress: return
+    # Reset other columns' heading text (remove sort indicators)
+    for column in app.prediction_table["columns"]:
+        if column != col:
+            app.prediction_table.heading(column, text=column)
+
+    # Toggle sorting on the selected column
+    app._prediction_sort_reverse = not app._prediction_sort_reverse
+    
+    # Update the heading to show the triangle for ascending/descending
+    if app._prediction_sort_reverse:
+        app.prediction_table.heading(col, text=f"{col} ▲")
+    else:
+        app.prediction_table.heading(col, text=f"{col} ▼")
+
+    app._prediction_sort_column = col
+    app.update_tables()
+
+def reset_sorting(app):
+    for column in app.prediction_table["columns"]: app.prediction_table.heading(column, text=column)
+    for column in app.series_table["columns"]: app.series_table.heading(column, text=column)
+    app._series_sort_column = None
+    app._series_sort_reverse = True
+    app._prediction_sort_column = None
+    app._prediction_sort_reverse = True
