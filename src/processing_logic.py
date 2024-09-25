@@ -49,7 +49,9 @@ def process_loop(app):
         eta = timedelta(seconds=seconds)
         app.progress_var.set(f"Prediction Progress:    {((i + 1) / num_pred * 100):.2f}%       ETA: {str(eta)}")
         app.series_data = app.series_data[app.series_data["Index"]!=series["Index"]]
-        app.predicted_series = pd.concat([app.predicted_series, pd.DataFrame([series], columns=app.predicted_series.columns)], ignore_index=False)
+        newly_predicted = pd.DataFrame([series], columns=app.predicted_series.columns)
+        if app.predicted_series.empty: app.predicted_series = newly_predicted.copy()
+        else: app.predicted_series = pd.concat([app.predicted_series, newly_predicted], ignore_index=False)
         app.update_tables()
         app.predicted_series.sort_values(by='Index', ascending=True, inplace=False).to_csv(os.path.join(app.out_dir, "predictions.csv"), index=True, index_label='idx')
     del models
