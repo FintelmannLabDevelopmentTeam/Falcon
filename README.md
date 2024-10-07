@@ -25,8 +25,8 @@ Start by ensuring that you have a recent miniconda/anaconda version on your mach
 
 1. Clone the repository:
     ```bash
-    git clone [ADD REPO PATH]
-    cd [ADD REPO NAME]
+    git clone https://github.com/FintelmannLabDevelopmentTeam/Falcon.git
+    cd Falcon
     ```
 
 2. Create and activate a new conda environment. For development and testing, Python 3.9 has been used, so we recommend using this Python version. We provide an environment.yml file for both Windows and Mac, in case you use Mac, please replace "windows" with "mac" in the line below.
