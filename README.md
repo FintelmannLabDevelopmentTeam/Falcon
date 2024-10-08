@@ -12,9 +12,9 @@ For more details about FALCON’s internal structure, or to review comprehensive
 There are two possible ways to install and run FALCON on your system:
 
 ### 1. Standalone .zip installation
-We recommend to install FALCON via the release .zip files provided with this repo. This installation is faster and does not require the installation of conda packages or python interpreters. To install FALCON, simply search for the latest release of this github repo (on the right side of the page, under "Releases") and click it. Dependending on your operating system, download either the Mac or Windows zip file of FALCON. After download, move the zip to the desired location in your file system and unpack it. The unpacked folder will contain the FALCON executable, and an "_internal" folder containing all necessary packages and files. To launch FALCON, simply double-click the executable. 
+We recommend to install FALCON via the release .zip files provided with this repo. This installation is faster and does not require the installation of conda packages or python interpreters. To install FALCON, simply search for the latest release of this github repo (on the right side of the page, under "Releases") and click it. Depending on your operating system, download either the Mac or Windows zip file of FALCON. Once downloaded, move the zip to the desired location in your file system and unpack it. The unpacked folder will contain the FALCON executable, and an "_internal" folder containing all necessary packages and files. To launch FALCON, simply double-click the executable. 
 
-Please note that moving the executable to a new location (without the internal folder) might break the application. However, it is of course possible to move the entire FALCON folder, or to create a shortcut to the executable.
+Please note that moving the executable to a new location (without the internal folder) might break the application. However, it is possible to move the entire FALCON folder, or to create a shortcut to the executable.
 Unfortunately, this method is currently only supported for Windows and Mac.
 
 ### 2. Cloning the repo
