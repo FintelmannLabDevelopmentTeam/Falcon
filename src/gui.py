@@ -152,6 +152,7 @@ class CTScanSeriesPredictionApp:
 
     def list_series(self): #Called by List Series Button
         """List and display series in the selected directory."""
+        self.reset_gui()
         load_and_display_series(self)
 
     def reset(self, show_confirm=True): #Called by Reset Button
@@ -161,24 +162,9 @@ class CTScanSeriesPredictionApp:
             def reset_prediction(reset=True, prev_txt='', delete_files=True):
                 if reset:
                     if delete_files and os.path.exists(self.out_dir): shutil.rmtree(self.out_dir)
-
-                    self.series_data = []
-                    self.all_series_data = []
-                    self.predicted_series = []
-                    reset_sorting(self)
-                    self.update_tables()
-                    self.is_paused = False
-                    self.prediction_in_progress = False
-                    self.settings_button.config(state="normal", cursor="hand2")
-                    #self.reset_button.config(state="normal", cursor="hand2")
-                    update_reset_button(self, "Disabled")
-                    self.edit_button.config(state="disabled", cursor="arrow")
-                    self.provide_button.config(state="disabled", cursor="arrow")
                     self.directory_var.set("")
                     self.directory = None
-                    self.out_dir = None
-                    self.progress_var.set(f"Prediction progress reset. Select a directory to restart.")
-                    update_start_button(self, "Disabled")
+                    self.reset_gui()
                 else:
                     self.progress_var.set(prev_txt)
             if show_confirm:
@@ -189,6 +175,22 @@ class CTScanSeriesPredictionApp:
                 reset_prediction(reset=True, delete_files=False)
         else:
             self.progress_var.set("Please select a directory to start.")
+
+    def reset_gui(self):
+        self.series_data = []
+        self.all_series_data = []
+        self.predicted_series = []
+        reset_sorting(self)
+        self.update_tables()
+        self.is_paused = False
+        self.prediction_in_progress = False
+        self.settings_button.config(state="normal", cursor="hand2")
+        update_reset_button(self, "Disabled")
+        self.edit_button.config(state="disabled", cursor="arrow")
+        self.provide_button.config(state="disabled", cursor="arrow")
+        self.out_dir = None
+        self.progress_var.set(f"New directory selected, resetting GUI...")
+        update_start_button(self, "Disabled")
 
     def update_series_lists(self):
         self.all_series_data.to_csv(os.path.join(self.out_dir, "list_of_series.csv"), index=True)

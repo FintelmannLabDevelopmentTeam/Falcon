@@ -1,16 +1,39 @@
-from tkinter import Label, Entry, Button, ttk, StringVar, Canvas, font
+from tkinter import Label, Entry, Button, ttk, StringVar, Canvas, font, Text
 from src.user_interface.ui_utils import ToolTip, get_font_size, update_start_button, update_reset_button, setup_sorting
 from src.user_interface.ui_utils import get_info_icon, get_fintelmann_logo, get_mgh_logo, call_fintelmann_website
 
 def build_gui(app, version="v1.0.0"):
-    app.root.title("FALCON  -  Fully-automated Labeling of CT Anatomy and IV Contrast")
+    app.root.title("FALCON  -  Fully Automated Labeling of CT anatomy and intravenous CONtrast")
     app.root.geometry("1400x800")  # Initial window size that fits the content
     root = app.root
     title_frame = ttk.Frame(root)
     title_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(20,20), padx=(20,0))
     title_frame.grid_columnconfigure(1, weight=1) 
     Label(title_frame, text="FALCON", font=("", get_font_size("title"), "bold")).grid(row=0,column=0, sticky="w")
-    Label(title_frame, text="  -   Fully-automated Labeling of CT Anatomy and IV Contrast", font=("", get_font_size("huge"), "")).grid(row=0,column=1, sticky="w")
+    
+    # Text widget for "Fully Automated Labeling of CT anatomy and intravenous CONtrast" with specific letters bold
+    text_widget = Text(title_frame, height=1, bd=0, bg=root.cget('bg'), font=("Helvetica", get_font_size("huge")), wrap="word")
+    text_widget.grid(row=0, column=1, sticky="w")
+
+    # Create bold font
+    bold_font = font.Font(family="Helvetica", size=get_font_size("huge"), weight="bold")
+
+    # Insert the text with specific bold sections
+    text_widget.insert("1.0", "   -   Fully Automated Labeling of CT anatomy and intravenous CONtrast")
+
+    # Tag specific letters for bold
+    text_widget.tag_add("bold", "1.7", "1.8")  # Bold F in Fully
+    text_widget.tag_add("bold", "1.13", "1.14")  # Bold A in Automated
+    text_widget.tag_add("bold", "1.23", "1.24")  # Bold L in Labeling
+    text_widget.tag_add("bold", "1.62", "1.65")  # Bold CON in Contrast
+
+    # Apply the bold font tag
+    text_widget.tag_config("bold", font=bold_font)
+
+    # Disable text editing to make it behave like a label
+    text_widget.config(state="disabled")
+    
+    #Label(title_frame, text="  -   Fully-automated Labeling of CT Anatomy and IV Contrast", font=("", get_font_size("huge"), "")).grid(row=0,column=1, sticky="w")
     app.finti_logo = get_fintelmann_logo(width=300)
     app.finti = Label(title_frame, image=app.finti_logo, cursor="hand2")
     app.finti.grid(row=0,column=2, sticky="e")
