@@ -2,7 +2,7 @@
 ### <span style="font-weight: 900;">F</span>ully <span style="font-weight: 900;">A</span>utomated <span style="font-weight: 900;">L</span>abeling of CT anatomy and intravenous <span style="font-weight: 900;">CON</span>trast
 
 
-Welcome to **FALCON**, a CT data curation tool developed by Philipp Kaess for the Fintelmann Lab at Massachusetts General Hospital, Boston, MA. FALCON provides an efficient, accurate, and fully automated solution for labeling body parts (Head/Neck, Chest, Abdomen) and intravenous (IV) contrast status (Contrast / No Contrast) across CT series within any folder or patient directory.
+Welcome to **FALCON**, a CT data curation tool developed by Philipp Kaess for the Fintelmann Lab at Massachusetts General Hospital, Boston, MA. FALCON provides an efficient, accurate, and fully automated solution for labeling body parts (Head/Neck, Chest, Abdomen/Pelvis) and intravenous (IV) contrast status (Contrast / No Contrast) across CT series within any folder or patient directory.
 
 Body part and IV contrast information is often missing or inaccurate in DICOM headers, and manual labeling can be time-consuming. FALCON solves this problem by generating highly reliable labels based purely on CT image predictions, ensuring critical metadata is available for downstream tasks such as automated diagnosis. By automating this process, FALCON significantly reduces the burden of manual annotation while enhancing data reliability.
 
