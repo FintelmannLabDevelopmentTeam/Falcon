@@ -6,7 +6,7 @@ Welcome to **FALCON**, a CT data curation tool developed by Philipp Kaess for th
 
 Body part and IV contrast information is often missing or inaccurate in DICOM headers, and manual labeling can be time-consuming. FALCON solves this problem by generating highly reliable labels based purely on CT image predictions, ensuring critical metadata is available for downstream tasks such as automated diagnosis. By automating this process, FALCON significantly reduces the burden of manual annotation while enhancing data reliability.
 
-For more details about FALCON’s internal structure, or to review comprehensive reports on its performance, please refer to the associated publication [REFERENCE TO PUBLICATION].
+For more details about FALCON’s internal structure, or to review comprehensive reports on its performance, please refer to the associated publication.
 
 
 ## Installation
@@ -41,9 +41,6 @@ Start by ensuring that you have a recent miniconda/anaconda version on your mach
     ```bash
     python main.py
     ```
-
-## User Guide
-ToDo: Fill User Guide
 
 
 <br>
